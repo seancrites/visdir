@@ -1,0 +1,36 @@
+i# =============================================================================
+# .gitignore for visdir
+# =============================================================================
+
+# Generated thumbnails - never commit these
+public_html/thumbnails/*.png
+
+# Python virtual environment
+visdir-env/
+*/visdir-env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS junk
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+visdir-thumbnail-update.log
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.bak
+*~

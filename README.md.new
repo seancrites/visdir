@@ -1,0 +1,115 @@
+# visdir
+
+A clean, modern, fully configurable **visual directory** template.
+
+Build beautiful, responsive directories with live webpage thumbnails, interactive maps, contact forms, and dark mode — all driven by a single JSON file.
+
+Perfect for churches, clubs, teams, resources, businesses, schools, or any collection of entities.
+
+---
+
+## Features
+
+- Beautiful card layout with **auto-updating** webpage thumbnails
+- Interactive Leaflet map with location pins
+- Dark / Light mode toggle
+- Clickable phone, email, social links, and Google Maps
+- Secure anti-spam contact form
+- Everything configurable via one `data.json` file
+- GPL-3.0 licensed – free to fork and use
+
+---
+
+## Quick Start
+
+1. Clone the repo
+2. Place the files in your web server's public directory
+3. Edit `data.json` with your own entities
+4. Set up the Python environment and run the thumbnail updater
+5. Deploy!
+
+---
+
+## Python Thumbnail Updater Setup
+
+```bash
+# Create venv (run once)
+python3 -m venv ~/visdir-env
+
+# Install dependencies
+source ~/visdir-env/bin/activate
+pip install --upgrade pip
+pip install playwright pillow
+playwright install chromium
+```
+
+Create the helper script (once):
+
+```bash
+cat > scripts/update-thumbnails.sh << 'EOF'
+#!/usr/bin/env bash
+VENV_DIR="${HOME}/visdir-env"
+SCRIPTS_DIR="$(dirname "$(realpath "$0")")"
+source "${VENV_DIR}/bin/activate"
+cd "${SCRIPTS_DIR}"
+python update-thumbnails.py
+deactivate
+EOF
+
+chmod +x scripts/update-thumbnails.sh
+```
+
+Run the updater:
+
+```bash
+./scripts/update-thumbnails.sh
+```
+
+---
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0** (GPL-3.0).
+
+See [LICENSE](LICENSE) for details.
+
+---
+
+Made with ❤️ by the open-source community.
+```
+
+---
+
+### 2. `data.json`
+
+```json
+{
+  "site": {
+    "name": "VisDir",
+    "slogan": "A beautiful visual directory for any group",
+    "motto": "See it. Find it. Connect.",
+    "year": 2026,
+    "developer": "Your Name",
+    "github_url": "https://github.com/yourusername/visdir",
+    "luther_rose_svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"42\" height=\"42\" viewBox=\"0 0 1000 1000\" class=\"text-amber-600\"><circle cx=\"500\" cy=\"500\" r=\"470\" fill=\"#f4c00e\" stroke=\"#2c2c2c\" stroke-width=\"30\"/><circle cx=\"500\" cy=\"500\" r=\"320\" fill=\"#c8102e\" stroke=\"#2c2c2c\" stroke-width=\"30\"/><path d=\"M500 200 L500 800\" stroke=\"#2c2c2c\" stroke-width=\"80\" stroke-linecap=\"round\"/><circle cx=\"500\" cy=\"500\" r=\"100\" fill=\"#ffd700\" stroke=\"#2c2c2c\" stroke-width=\"20\"/></svg>"
+  },
+  "entities": [
+    {
+      "slug": "example-entity-1",
+      "name": "Example Entity One",
+      "city": "Anytown",
+      "address": "123 Main Street, Anytown, ST 12345",
+      "website": "https://example.com",
+      "pastor": "Jane Doe",
+      "pastor_contact": "jane@example.com",
+      "phone": "(555) 123-4567",
+      "email": "info@example.com",
+      "stream_url": "https://youtube.com/live",
+      "facebook": "https://facebook.com/example",
+      "youtube": "https://youtube.com/example",
+      "lat": 40.7128,
+      "lng": -74.0060,
+      "take_thumbnail": true
+    }
+  ]
+}
