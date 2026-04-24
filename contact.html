@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Contact - VisDir</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+   <style>
+      .form-input {
+         transition: all 0.2s;
+      }
+
+      .form-input:focus {
+         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+      }
+   </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
+
+   <!-- NAV -->
+   <nav class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+         <div class="flex items-center gap-x-3" id="nav-brand"></div>
+         <div class="flex items-center gap-x-8">
+            <a href="index.html" class="hover:text-amber-600 font-medium">Directory</a>
+            <a href="map.html" class="hover:text-amber-600 font-medium">Map</a>
+            <a href="contact.html" class="text-amber-600 font-medium">Contact</a>
+         </div>
+      </div>
+   </nav>
+
+   <div class="max-w-2xl mx-auto px-6 py-16">
+      <h1 class="text-4xl font-bold text-center mb-3">Get in Touch</h1>
+      <p class="text-center text-slate-600 dark:text-slate-400 mb-10">Have feedback, corrections, or want to add
+         something? We'd love to hear from you.</p>
+
+      <div id="status-message" class="hidden mb-8 rounded-2xl p-6 text-center"></div>
+
+      <form action="contact.php" method="POST" class="space-y-6 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow">
+         <!-- Honeypot anti-spam -->
+         <input type="text" name="honeypot" style="display:none" tabindex="-1" autocomplete="off">
+
+         <div>
+            <label class="block text-sm font-medium mb-1">Your Name</label>
+            <input type="text" name="name" required
+               class="form-input w-full px-5 py-4 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none">
+         </div>
+
+         <div>
+            <label class="block text-sm font-medium mb-1">Email Address</label>
+            <input type="email" name="email" required
+               class="form-input w-full px-5 py-4 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none">
+         </div>
+
+         <div>
+            <label class="block text-sm font-medium mb-1">Message</label>
+            <textarea name="message" rows="6" required
+               class="form-input w-full px-5 py-4 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none"></textarea>
+         </div>
+
+         <button type="submit"
+            class="w-full bg-slate-900 hover:bg-amber-600 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-amber-600 text-white py-5 rounded-2xl font-semibold text-lg transition">
+            Send Message
+         </button>
+      </form>
+   </div>
+
+   <!-- FOOTER -->
+   <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8">
+      <div class="max-w-7xl mx-auto px-6 text-center">
+         <p id="motto-text" class="text-lg font-medium text-amber-600"></p>
+         <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            Built with VisDir
+            • <a href="#" id="github-link" target="_blank" class="hover:text-amber-600">GitHub</a>
+         </p>
+      </div>
+   </footer>
+
+   <script>
+      fetch('data.json?' + Date.now())
+         .then(r => r.json())
+         .then(data => {
+            const site = data.site || {};
+
+            document.getElementById('nav-brand').innerHTML = `
+                    ${site.logo_svg || ''}
+                    <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                `;
+
+            document.getElementById('motto-text').textContent = site.motto || '';
+
+            if (site.github_url) {
+               document.getElementById('github-link').href = site.github_url;
+            }
+         });
+
+      function showStatusMessage() {
+         const urlParams = new URLSearchParams(window.location.search);
+         const status = urlParams.get('status');
+         const div = document.getElementById('status-message');
+
+         if (status === 'success') {
+            div.className = 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 p-6 rounded-2xl text-center mb-8';
+            div.innerHTML = '✅ Thank you! Your message has been sent successfully.';
+            div.classList.remove('hidden');
+         } else if (status === 'error') {
+            div.className = 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 p-6 rounded-2xl text-center mb-8';
+            div.innerHTML = '❌ Sorry, something went wrong. Please try again.';
+            div.classList.remove('hidden');
+         }
+      }
+
+      window.onload = showStatusMessage;
+   </script>
+</body>
+
+</html>

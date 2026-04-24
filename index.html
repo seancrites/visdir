@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>VisDir</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+   <style>
+      .entity-card {
+         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .entity-card:hover {
+         transform: translateY(-4px);
+         box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      }
+
+      .thumbnail {
+         height: 280px;
+         object-fit: cover;
+      }
+   </style>
+
+   <!-- SEO -->
+   <meta name="description"
+      content="A clean, modern visual directory template with live thumbnails and interactive map.">
+   <meta property="og:title" content="VisDir">
+   <meta property="og:description" content="Build beautiful visual directories with one JSON file.">
+   <meta property="og:type" content="website">
+   <meta property="og:url" content="https://yourdomain.com">
+   <link rel="canonical" href="https://yourdomain.com">
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
+
+   <!-- NAV -->
+   <nav class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+         <div class="flex items-center gap-x-3" id="nav-brand"></div>
+         <div class="flex items-center gap-x-8">
+            <a href="index.html" class="hover:text-amber-600 font-medium">Directory</a>
+            <a href="map.html" class="hover:text-amber-600 font-medium">Map</a>
+            <a href="contact.html" class="hover:text-amber-600 font-medium">Contact</a>
+         </div>
+      </div>
+   </nav>
+
+   <div class="max-w-7xl mx-auto px-6 py-12">
+      <div class="text-center mb-16">
+         <h1 id="site-name" class="text-5xl font-bold mb-4"></h1>
+         <p id="site-slogan" class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto"></p>
+      </div>
+
+      <div id="status" class="text-center py-8"></div>
+
+      <div id="entity-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+   </div>
+
+   <!-- FOOTER -->
+   <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8">
+      <div class="max-w-7xl mx-auto px-6 text-center">
+         <p id="motto-text" class="text-lg font-medium text-amber-600"></p>
+         <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            Built with VisDir
+            • <a href="#" id="github-link" target="_blank" class="hover:text-amber-600">GitHub</a>
+         </p>
+      </div>
+   </footer>
+
+   <script>
+      function toggleDarkMode() {
+         const html = document.documentElement;
+         html.classList.toggle('dark');
+         localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+         updateThemeIcon();
+      }
+
+      function updateThemeIcon() {
+         const icon = document.getElementById('theme-icon');
+         icon.classList.toggle('fa-moon', !document.documentElement.classList.contains('dark'));
+         icon.classList.toggle('fa-sun', document.documentElement.classList.contains('dark'));
+      }
+
+      function initTheme() {
+         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+         }
+         updateThemeIcon();
+      }
+
+      function renderSiteAndEntities() {
+         fetch('data.json?' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+               const site = data.site || {};
+
+               document.getElementById('nav-brand').innerHTML = `
+                        ${site.logo_svg || ''}
+                        <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                    `;
+
+               document.getElementById('site-name').textContent = site.name || 'VisDir';
+               document.getElementById('site-slogan').textContent = site.slogan || '';
+               document.getElementById('motto-text').textContent = site.motto || '';
+
+               if (site.github_url) {
+                  document.getElementById('github-link').href = site.github_url;
+               }
+
+               renderEntities(data.entities || []);
+            });
+      }
+
+      function renderEntities(entities) {
+         const grid = document.getElementById('entity-grid');
+         grid.innerHTML = '';
+
+         entities.forEach(entity => {
+            if (!entity.website || entity.take_thumbnail === false) return;
+
+            const card = document.createElement('div');
+            card.className = 'entity-card bg-white dark:bg-slate-900 rounded-2xl shadow overflow-hidden border border-slate-100 dark:border-slate-700';
+
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entity.address + ', ' + entity.city)}`;
+
+            card.innerHTML = `
+                    <img src="thumbnails/${entity.slug}.png" alt="${entity.name}" class="thumbnail w-full" onerror="this.src='https://via.placeholder.com/480x280/cccccc/666666?text=No+Thumbnail';">
+                    <div class="p-6">
+                        <h3 class="text-2xl font-semibold">${entity.name}</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${entity.address}</p>
+
+                        ${entity.pastor ? `
+                        <div class="mt-4 text-sm">
+                            <strong>Contact:</strong> ${entity.pastor}
+                            ${entity.pastor_contact ? `<br><a href="mailto:${entity.pastor_contact}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.pastor_contact}</a>` : ''}
+                        </div>` : ''}
+
+                        <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+                            ${entity.phone ? `<div class="flex items-center"><i class="fa-solid fa-phone mr-2 text-slate-400"></i><a href="tel:${entity.phone.replace(/[^0-9+]/g, '')}" class="hover:underline">${entity.phone}</a></div>` : ''}
+                            ${entity.email ? `<div class="flex items-center"><i class="fa-solid fa-envelope mr-2 text-slate-400"></i><a href="mailto:${entity.email}" class="hover:underline">${entity.email}</a></div>` : ''}
+                        </div>
+
+                        <a href="${googleMapsUrl}" target="_blank" class="inline-flex items-center text-amber-600 hover:text-amber-700 mt-3"><i class="fa-solid fa-map-marker-alt mr-2"></i>View on Map</a>
+                        <a href="${entity.website}" target="_blank" class="mt-6 inline-flex items-center justify-center w-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 font-medium">Visit Website →</a>
+                    </div>
+                `;
+            grid.appendChild(card);
+         });
+      }
+
+      window.onload = () => {
+         initTheme();
+         renderSiteAndEntities();
+      };
+   </script>
+</body>
+
+</html>
