@@ -6,6 +6,11 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>VisDir – Interactive Map</title>
    <script src="https://cdn.tailwindcss.com"></script>
+   <script>
+      tailwind.config = {
+         darkMode: 'class'
+      }
+   </script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -62,6 +67,8 @@
       function initTheme() {
          if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
+         } else {
+            document.documentElement.classList.remove('dark');
          }
          updateThemeIcon();
       }
@@ -79,15 +86,15 @@
 
                document.getElementById('motto-text').textContent = site.motto || '';
 
-               const developer = site.developer;
+               const maintainer = site.maintainer;
                const showContact = site.show_contact === true;
                const supportUrl = site.support_url;
                const supportLabel = site.support_label;
                const visdirLink = '<a href="https://github.com/seancrites/visdir" target="_blank" class="hover:text-amber-600">VisDir</a>';
 
                const parts = [];
-               if (developer) {
-                  parts.push(`Maintained by ${developer}`);
+               if (maintainer) {
+                  parts.push(`Maintained by ${maintainer}`);
                }
                if (showContact) {
                   parts.push('<a href="contact.html" class="hover:text-amber-600">Contact</a>');
