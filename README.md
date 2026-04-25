@@ -1,7 +1,4 @@
 # visdir
-<<<<<<< HEAD
-Dynamic visual directory with auto-updating webpage thumbnails, interactive maps, and JSON configuration.
-=======
 
 A clean, modern, fully configurable **visual directory** template.
 
@@ -189,4 +186,3 @@ Adjust the path and schedule to match your server setup.
 This project is licensed under the **GNU General Public License v3.0** (GPL-3.0).
 
 See [LICENSE](LICENSE) for details.
->>>>>>> refs/remotes/origin/dev
