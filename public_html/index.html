@@ -105,9 +105,9 @@
                document.getElementById('site-slogan').textContent = site.slogan || '';
                document.getElementById('motto-text').textContent = site.motto || '';
 
-               if (site.github_url) {
-                  document.getElementById('github-link').href = site.github_url;
-               }
+               const ghLink = document.getElementById('github-link');
+               ghLink.href = site.support_url || 'https://github.com/seancrites/visdir';
+               ghLink.textContent = site.support_label || 'GitHub Project';
 
                renderEntities(data.entities || []);
             });
@@ -134,7 +134,7 @@
                         ${entity.pastor ? `
                         <div class="mt-4 text-sm">
                             <strong>Contact:</strong> ${entity.pastor}
-                            ${entity.pastor_contact ? `<br><a href="mailto:${entity.pastor_contact}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.pastor_contact}</a>` : ''}
+                             ${entity.contact_name ? `<br><a href="mailto:${entity.contact_name}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.contact_name}</a>` : ''}
                         </div>` : ''}
 
                         <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
