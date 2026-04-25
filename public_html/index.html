@@ -131,9 +131,9 @@
                         <h3 class="text-2xl font-semibold">${entity.name}</h3>
                         <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${entity.address}</p>
 
-                        ${entity.pastor ? `
+                        ${entity.contact ? `
                         <div class="mt-4 text-sm">
-                            <strong>Contact:</strong> ${entity.pastor}
+                            <strong>Contact:</strong> ${entity.contact}
                              ${entity.contact_name ? `<br><a href="mailto:${entity.contact_name}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.contact_name}</a>` : ''}
                         </div>` : ''}
 
