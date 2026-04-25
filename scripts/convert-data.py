@@ -76,12 +76,15 @@ def json_to_csv(json_path, csv_path, auto_yes=False):
     if not rows:
         print(f"Warning: '{array_key}' array is empty.")
 
-    # Union of all keys across every row
-    headers = set()
+    # Preserve key order from first row, then append extra keys in discovery order
+    seen = set()
+    headers = []
     for row in rows:
         if isinstance(row, dict):
-            headers.update(row.keys())
-    headers = sorted(headers)
+            for key in row.keys():
+                if key not in seen:
+                    seen.add(key)
+                    headers.append(key)
 
     if not confirm_overwrite(csv_path, auto_yes):
         print("Aborted.")
