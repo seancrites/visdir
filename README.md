@@ -40,9 +40,37 @@ cp -r public_html/* /var/www/html/
 ln -s $(pwd)/public_html /var/www/html/visdir
 ```
 
-### 3. Edit `data.json`
+### 3. Configure the project
 
-Update `public_html/data.json` with your own entities.
+#### a. Edit `public_html/data.json`
+
+Update `public_html/data.json` with your own site info and entities.
+
+#### b. Update `public_html/contact.php`
+
+Set your email address and from-domain:
+
+```php
+$to = "you@example.com";                         // ← Your email
+$headers = "From: no-reply@yourdomain.com\r\n";  // ← Your domain
+```
+
+#### c. Update `public_html/sitemap.xml`
+
+Replace `https://yourdomain.com` with your actual domain.
+
+#### d. Update `public_html/robots.txt`
+
+Replace `https://yourdomain.com` with your actual domain.
+
+#### e. Update SEO tags in `public_html/index.html`
+
+Replace these placeholders with your domain:
+
+```html
+<meta property="og:url" content="https://yourdomain.com">
+<link rel="canonical" href="https://yourdomain.com">
+```
 
 ### 4. Set up the Python environment and run the thumbnail updater
 
@@ -57,7 +85,7 @@ pip install playwright pillow
 playwright install chromium
 ```
 
-**Configure the helper script paths**
+#### Configure the helper script paths
 
 Open `scripts/update-thumbnails.sh` and verify or update these two variables near the top:
 
@@ -66,7 +94,15 @@ VENV_DIR="${HOME}/visdir-env"                    # Path to the Python venv you c
 SCRIPTS_DIR="$(dirname "$(realpath "$0")")"    # Usually auto-detected; change only if needed
 ```
 
-If you cloned the project to a different location (e.g., `/opt/visdir` instead of `/var/www/visdir`), update `SCRIPTS_DIR` to the absolute path of the `scripts/` folder so the updater knows where `public_html/` (or your HTML files) lives.
+#### Configure the Python script path
+
+Open `scripts/update-thumbnails.py` and verify this variable near the top:
+
+```python
+PROJECT_DIR = Path("../public_html").resolve()   # Points to your HTML files
+```
+
+If your project is at `/var/www/visdir` and the script is in `scripts/`, the default `../public_html` resolves correctly. If your layout is different, change it to an absolute path like `Path("/var/www/visdir/public_html")`.
 
 Run the updater:
 
@@ -101,7 +137,3 @@ Adjust the path and schedule to match your server setup.
 This project is licensed under the **GNU General Public License v3.0** (GPL-3.0).
 
 See [LICENSE](LICENSE) for details.
-
----
-
-Made with ❤️ by the open-source community.
