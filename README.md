@@ -16,7 +16,6 @@ Perfect for churches, clubs, teams, resources, businesses, schools, or any colle
 - Clickable phone, email, social links, and Google Maps
 - Secure anti-spam contact form
 - Everything configurable via one `data.json` file
-- GPL-3.0 licensed – free to fork and use
 
 ---
 
@@ -45,6 +44,56 @@ ln -s $(pwd)/public_html /var/www/html/visdir
 #### a. Edit `public_html/data.json`
 
 Update `public_html/data.json` with your own site info and entities.
+
+**Site fields**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Site title displayed in the nav and header |
+| `slogan` | string | Subtitle shown under the site name |
+| `motto` | string | Short phrase displayed in the footer |
+| `year` | number | Copyright year |
+| `maintainer` | string | Name shown in the footer as "Maintained by [name]" (omit to hide) |
+| `show_contact` | boolean | Set to `true` to show a "Contact" link in the footer |
+| `support_url` | string | URL for the support link in the footer |
+| `support_label` | string | Label for the support link (shown only if `support_url` is also set) |
+| `logo_svg` | string | Inline SVG markup for the nav logo |
+
+**Entity fields**
+
+Each object in the `entities` array supports:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `slug` | string | Unique identifier used for the thumbnail filename |
+| `name` | string | Display name of the entity |
+| `city` | string | City name |
+| `address` | string | Full street address |
+| `website` | string | URL of the entity's website (required for thumbnail generation) |
+| `pastor` | string | Name of the pastor/leader |
+| `contact_name` | string | Contact person's name or email |
+| `phone` | string | Phone number (clickable) |
+| `email` | string | Email address (clickable) |
+| `stream_url` | string | Live stream URL |
+| `facebook` | string | Facebook page URL |
+| `youtube` | string | YouTube channel URL |
+| `lat` | number | Latitude for the map pin |
+| `lng` | number | Longitude for the map pin |
+| `take_thumbnail` | boolean | Set to `false` to skip thumbnail generation for this entity |
+
+**Footer behavior**
+
+The footer is built dynamically from the `site` fields above:
+
+- If `maintainer` is set: `Maintained by [maintainer]`
+- If `show_contact` is `true`: `Contact` → links to `contact.html`
+- If `support_url` and `support_label` are set: `[support_label]` → links to `support_url`
+- Always ends with: `Built with VisDir` → links to `https://github.com/seancrites/visdir`
+
+Examples:
+
+- Everything on: `Maintained by John Doe • Contact • Support • Built with VisDir`
+- Everything off: `Built with VisDir`
 
 #### b. Update `public_html/contact.php`
 
