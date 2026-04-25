@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    sitemap.xml for visdir
+    A clean visual directory template
+    Last updated: 2026-04-23
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    <!-- Home / Directory Page -->
+    <url>
+        <loc>https://yourdomain.com/</loc>
+        <lastmod>2026-04-23</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Interactive Map -->
+    <url>
+        <loc>https://yourdomain.com/map.html</loc>
+        <lastmod>2026-04-23</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- Contact Page -->
+    <url>
+        <loc>https://yourdomain.com/contact.html</loc>
+        <lastmod>2026-04-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+</urlset>

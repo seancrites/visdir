@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>VisDir – Interactive Map</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script>
+      tailwind.config = {
+         darkMode: 'class'
+      }
+   </script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+   <style>
+      #map {
+         height: calc(100vh - 64px);
+      }
+   </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
+
+   <!-- NAV -->
+   <nav class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+         <div class="flex items-center gap-x-3" id="nav-brand"></div>
+         <div class="flex items-center gap-x-8">
+            <a href="index.html" class="hover:text-amber-600 font-medium">Directory</a>
+            <a href="map.html" class="hover:text-amber-600 font-medium">Map</a>
+            <a href="contact.html" class="hover:text-amber-600 font-medium">Contact</a>
+            <button onclick="toggleDarkMode()"
+               class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+               aria-label="Toggle dark mode">
+               <i id="theme-icon" class="fa-solid fa-moon text-slate-600 dark:text-slate-400"></i>
+            </button>
+         </div>
+      </div>
+   </nav>
+
+   <div id="map"></div>
+
+   <!-- FOOTER -->
+   <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8">
+      <div class="max-w-7xl mx-auto px-6 text-center">
+         <p id="motto-text" class="text-lg font-medium text-amber-600"></p>
+         <p id="footer-text" class="mt-3 text-xs text-slate-500 dark:text-slate-400"></p>
+      </div>
+   </footer>
+
+   <script>
+      function toggleDarkMode() {
+         const html = document.documentElement;
+         html.classList.toggle('dark');
+         localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+         updateThemeIcon();
+      }
+
+      function updateThemeIcon() {
+         const icon = document.getElementById('theme-icon');
+         icon.classList.toggle('fa-moon', !document.documentElement.classList.contains('dark'));
+         icon.classList.toggle('fa-sun', document.documentElement.classList.contains('dark'));
+      }
+
+      function initTheme() {
+         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+         } else {
+            document.documentElement.classList.remove('dark');
+         }
+         updateThemeIcon();
+      }
+
+      function loadSiteAndMap() {
+         fetch('data.json?' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+               const site = data.site || {};
+
+               document.getElementById('nav-brand').innerHTML = `
+                        ${site.logo_svg || ''}
+                        <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                    `;
+
+               document.getElementById('motto-text').textContent = site.motto || '';
+
+               const maintainer = site.maintainer;
+               const showContact = site.show_contact === true;
+               const supportUrl = site.support_url;
+               const supportLabel = site.support_label;
+               const visdirLink = '<a href="https://github.com/seancrites/visdir" target="_blank" class="hover:text-amber-600">VisDir</a>';
+
+               const parts = [];
+               if (maintainer) {
+                  parts.push(`Maintained by ${maintainer}`);
+               }
+               if (showContact) {
+                  parts.push('<a href="contact.html" class="hover:text-amber-600">Contact</a>');
+               }
+               if (supportUrl && supportLabel) {
+                  parts.push(`<a href="${supportUrl}" target="_blank" class="hover:text-amber-600">${supportLabel}</a>`);
+               }
+               parts.push(`Built with ${visdirLink}`);
+
+               document.getElementById('footer-text').innerHTML = parts.join(' • ');
+
+               renderMap(data.entities || []);
+            });
+      }
+
+      function renderMap(entities) {
+         const map = L.map('map').setView([40.0, -100.0], 4);
+
+         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+         }).addTo(map);
+
+         entities.forEach(entity => {
+            if (entity.lat && entity.lng) {
+               const popup = `
+                        <b>${entity.name}</b><br>
+                        ${entity.city}<br>
+                        ${entity.address}<br>
+                        ${entity.website ? `<a href="${entity.website}" target="_blank">Visit Website</a>` : ''}
+                    `;
+               L.marker([entity.lat, entity.lng]).addTo(map).bindPopup(popup);
+            }
+         });
+      }
+
+      window.onload = () => {
+         initTheme();
+         loadSiteAndMap();
+      };
+   </script>
+</body>
+
+</html>

@@ -1,0 +1,66 @@
+{
+   "site": {
+      "name": "Visual Directory",
+      "slogan": "A beautiful visual directory for any group",
+      "motto": "See it. Find it. Connect.",
+      "year": 2026,
+      "maintainer": "",
+      "show_contact": false,
+      "support_url": "",
+      "support_label": "",
+      "logo_svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"42\" height=\"42\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#f59e0b\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 8L12 20L21 8\"/></svg>"
+   },
+   "entities": [
+      {
+         "slug": "example-entity-1",
+         "name": "Example Entity One",
+         "city": "Anytown",
+         "address": "123 Main Street, Anytown, ST 12345",
+         "website": "https://example.com",
+         "contact_name": "Jane Doe",
+         "contact_email": "jane@example.com",
+         "phone": "(555) 123-4567",
+         "email": "info@example.com",
+         "stream_url": "https://youtube.com/live",
+         "facebook": "https://facebook.com/example",
+         "youtube": "https://youtube.com/example",
+         "lat": 40.7128,
+         "lng": -74.0060,
+         "take_thumbnail": true
+      },
+      {
+         "slug": "example-entity-2",
+         "name": "Example Entity Two",
+         "city": "Othertown",
+         "address": "456 Oak Avenue, Othertown, ST 67890",
+         "website": "https://example-two.com",
+         "contact_name": "John Smith",
+         "contact_email": "john@example-two.com",
+         "phone": "(555) 987-6543",
+         "email": "info@example-two.com",
+         "stream_url": "https://youtube.com/live-two",
+         "facebook": "https://facebook.com/exampletwo",
+         "youtube": "https://youtube.com/exampletwo",
+         "lat": 34.0522,
+         "lng": -118.2437,
+         "take_thumbnail": true
+      },
+      {
+         "slug": "example-entity-3",
+         "name": "Example Entity Three",
+         "city": "Somewhere",
+         "address": "789 Pine Road, Somewhere, ST 54321",
+         "website": "https://example-three.com",
+         "contact_name": "Sarah Johnson",
+         "contact_email": "sarah@example-three.com",
+         "phone": "(555) 456-7890",
+         "email": "info@example-three.com",
+         "stream_url": "https://youtube.com/live-three",
+         "facebook": "https://facebook.com/examplethree",
+         "youtube": "https://youtube.com/examplethree",
+         "lat": 41.8781,
+         "lng": -87.6298,
+         "take_thumbnail": false
+      }
+   ]
+}
