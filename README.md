@@ -22,15 +22,29 @@ Perfect for churches, clubs, teams, resources, businesses, schools, or any colle
 
 ## Quick Start
 
-1. Clone the repo
-2. Place the files in your web server's public directory
-3. Edit `data.json` with your own entities
-4. Set up the Python environment and run the thumbnail updater
-5. Deploy!
+### 1. Clone the repository
 
----
+```bash
+cd /var/www
+git clone https://github.com/seancrites/visdir.git
+cd visdir
+```
 
-## Python Thumbnail Updater Setup
+### 2. Copy files to your web server
+
+```bash
+# Example for Apache
+cp -r public_html/* /var/www/html/
+
+# Or create a symlink (adjust paths as needed)
+ln -s $(pwd)/public_html /var/www/html/visdir
+```
+
+### 3. Edit `data.json`
+
+Update `public_html/data.json` with your own entities.
+
+### 4. Set up the Python environment and run the thumbnail updater
 
 ```bash
 # Create venv (run once)
@@ -43,27 +57,42 @@ pip install playwright pillow
 playwright install chromium
 ```
 
-Create the helper script (once):
+**Configure the helper script paths**
+
+Open `scripts/update-thumbnails.sh` and verify or update these two variables near the top:
 
 ```bash
-cat > scripts/update-thumbnails.sh << 'EOF'
-#!/usr/bin/env bash
-VENV_DIR="${HOME}/visdir-env"
-SCRIPTS_DIR="$(dirname "$(realpath "$0")")"
-source "${VENV_DIR}/bin/activate"
-cd "${SCRIPTS_DIR}"
-python update-thumbnails.py
-deactivate
-EOF
-
-chmod +x scripts/update-thumbnails.sh
+VENV_DIR="${HOME}/visdir-env"                    # Path to the Python venv you created above
+SCRIPTS_DIR="$(dirname "$(realpath "$0")")"    # Usually auto-detected; change only if needed
 ```
+
+If you cloned the project to a different location (e.g., `/opt/visdir` instead of `/var/www/visdir`), update `SCRIPTS_DIR` to the absolute path of the `scripts/` folder so the updater knows where `public_html/` (or your HTML files) lives.
 
 Run the updater:
 
 ```bash
 ./scripts/update-thumbnails.sh
 ```
+
+### 5. Deploy
+
+Visit your site in a browser. Thumbnails will appear in `public_html/thumbnails/`.
+
+---
+
+## Automate with Cron
+
+To keep thumbnails fresh automatically, add a cronjob that runs the updater on a schedule (e.g., daily at 3 AM):
+
+```bash
+# Open your crontab
+crontab -e
+
+# Add this line to run daily at 3:00 AM
+0 3 * * * /var/www/visdir/scripts/update-thumbnails.sh >/dev/null 2>&1
+```
+
+Adjust the path and schedule to match your server setup.
 
 ---
 
@@ -76,41 +105,3 @@ See [LICENSE](LICENSE) for details.
 ---
 
 Made with ❤️ by the open-source community.
-```
-
----
-
-### 2. `data.json`
-
-```json
-{
-  "site": {
-    "name": "VisDir",
-    "slogan": "A beautiful visual directory for any group",
-    "motto": "See it. Find it. Connect.",
-    "year": 2026,
-    "developer": "Your Name",
-    "support_url": "https://github.com/yourusername/visdir",
-    "support_label": "GitHub Project",
-    "luther_rose_svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"42\" height=\"42\" viewBox=\"0 0 1000 1000\" class=\"text-amber-600\"><circle cx=\"500\" cy=\"500\" r=\"470\" fill=\"#f4c00e\" stroke=\"#2c2c2c\" stroke-width=\"30\"/><circle cx=\"500\" cy=\"500\" r=\"320\" fill=\"#c8102e\" stroke=\"#2c2c2c\" stroke-width=\"30\"/><path d=\"M500 200 L500 800\" stroke=\"#2c2c2c\" stroke-width=\"80\" stroke-linecap=\"round\"/><circle cx=\"500\" cy=\"500\" r=\"100\" fill=\"#ffd700\" stroke=\"#2c2c2c\" stroke-width=\"20\"/></svg>"
-  },
-  "entities": [
-    {
-      "slug": "example-entity-1",
-      "name": "Example Entity One",
-      "city": "Anytown",
-      "address": "123 Main Street, Anytown, ST 12345",
-      "website": "https://example.com",
-      "pastor": "Jane Doe",
-      "contact_name": "jane@example.com",
-      "phone": "(555) 123-4567",
-      "email": "info@example.com",
-      "stream_url": "https://youtube.com/live",
-      "facebook": "https://facebook.com/example",
-      "youtube": "https://youtube.com/example",
-      "lat": 40.7128,
-      "lng": -74.0060,
-      "take_thumbnail": true
-    }
-  ]
-}
