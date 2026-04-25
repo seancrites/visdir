@@ -134,6 +134,23 @@ pip install playwright pillow
 playwright install chromium
 ```
 
+#### Optional: JSON ↔ CSV converter
+
+A standalone converter is included in `scripts/convert-data.py` for bulk editing. It requires **no extra packages**—only Python 3.
+
+```bash
+# JSON array → CSV
+python scripts/convert-data.py --to-csv public_html/data.json entities.csv
+
+# CSV → JSON (re-uses site object from existing JSON)
+python scripts/convert-data.py --to-json entities.csv public_html/data.json --site-from public_html/data.json
+
+# CSV → JSON (uses template site object)
+python scripts/convert-data.py --to-json entities.csv public_html/data.json
+```
+
+> **Note:** CSV stores everything as text, so numeric and boolean fields will become strings on conversion back to JSON. Review the output and adjust types if needed.
+
 #### Configure the helper script paths
 
 Open `scripts/update-thumbnails.sh` and verify or update these two variables near the top:
