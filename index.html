@@ -43,6 +43,11 @@
             <a href="index.html" class="hover:text-amber-600 font-medium">Directory</a>
             <a href="map.html" class="hover:text-amber-600 font-medium">Map</a>
             <a href="contact.html" class="hover:text-amber-600 font-medium">Contact</a>
+            <button onclick="toggleDarkMode()"
+               class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+               aria-label="Toggle dark mode">
+               <i id="theme-icon" class="fa-solid fa-moon text-slate-600 dark:text-slate-400"></i>
+            </button>
          </div>
       </div>
    </nav>
@@ -62,10 +67,7 @@
    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8">
       <div class="max-w-7xl mx-auto px-6 text-center">
          <p id="motto-text" class="text-lg font-medium text-amber-600"></p>
-         <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-            Built with VisDir
-            • <a href="#" id="github-link" target="_blank" class="hover:text-amber-600">GitHub</a>
-         </p>
+         <p id="footer-text" class="mt-3 text-xs text-slate-500 dark:text-slate-400"></p>
       </div>
    </footer>
 
@@ -105,9 +107,25 @@
                document.getElementById('site-slogan').textContent = site.slogan || '';
                document.getElementById('motto-text').textContent = site.motto || '';
 
-               const ghLink = document.getElementById('github-link');
-               ghLink.href = site.support_url || 'https://github.com/seancrites/visdir';
-               ghLink.textContent = site.support_label || 'GitHub Project';
+               const developer = site.developer;
+               const showContact = site.show_contact === true;
+               const supportUrl = site.support_url;
+               const supportLabel = site.support_label;
+               const visdirLink = '<a href="https://github.com/seancrites/visdir" target="_blank" class="hover:text-amber-600">VisDir</a>';
+
+               const parts = [];
+               if (developer) {
+                  parts.push(`Maintained by ${developer}`);
+               }
+               if (showContact) {
+                  parts.push('<a href="contact.html" class="hover:text-amber-600">Contact</a>');
+               }
+               if (supportUrl && supportLabel) {
+                  parts.push(`<a href="${supportUrl}" target="_blank" class="hover:text-amber-600">${supportLabel}</a>`);
+               }
+               parts.push(`Built with ${visdirLink}`);
+
+               document.getElementById('footer-text').innerHTML = parts.join(' • ');
 
                renderEntities(data.entities || []);
             });
@@ -118,7 +136,7 @@
          grid.innerHTML = '';
 
          entities.forEach(entity => {
-            if (!entity.website || entity.take_thumbnail === false) return;
+            if (!entity.website) return;
 
             const card = document.createElement('div');
             card.className = 'entity-card bg-white dark:bg-slate-900 rounded-2xl shadow overflow-hidden border border-slate-100 dark:border-slate-700';
