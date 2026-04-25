@@ -45,10 +45,10 @@ ln -s $(pwd)/public_html /var/www/html/visdir
 
 Update `public_html/data.json` with your own site info and entities.
 
-**Site fields**
+##### Site fields
 
 | Field | Type | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | `name` | string | Site title displayed in the nav and header |
 | `slogan` | string | Subtitle shown under the site name |
 | `motto` | string | Short phrase displayed in the footer |
@@ -59,19 +59,19 @@ Update `public_html/data.json` with your own site info and entities.
 | `support_label` | string | Label for the support link (shown only if `support_url` is also set) |
 | `logo_svg` | string | Inline SVG markup for the nav logo |
 
-**Entity fields**
+##### Entity fields
 
 Each object in the `entities` array supports:
 
 | Field | Type | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | `slug` | string | Unique identifier used for the thumbnail filename |
 | `name` | string | Display name of the entity |
 | `city` | string | City name |
 | `address` | string | Full street address |
 | `website` | string | URL of the entity's website (required for thumbnail generation) |
-| `pastor` | string | Name of the pastor/leader |
-| `contact_name` | string | Contact person's name or email |
+| `contact_name` | string | Name of the contact/leader |
+| `contact_email` | string | Contact person's email address |
 | `phone` | string | Phone number (clickable) |
 | `email` | string | Email address (clickable) |
 | `stream_url` | string | Live stream URL |
@@ -81,7 +81,7 @@ Each object in the `entities` array supports:
 | `lng` | number | Longitude for the map pin |
 | `take_thumbnail` | boolean | Set to `false` to skip thumbnail generation for this entity |
 
-**Footer behavior**
+##### Footer behavior
 
 The footer is built dynamically from the `site` fields above:
 

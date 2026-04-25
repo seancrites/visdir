@@ -156,10 +156,10 @@
                         <h3 class="text-2xl font-semibold">${entity.name}</h3>
                         <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${entity.address}</p>
 
-                        ${entity.contact ? `
+                        ${entity.contact_name ? `
                         <div class="mt-4 text-sm">
-                            <strong>Contact:</strong> ${entity.contact}
-                             ${entity.contact_name ? `<br><a href="mailto:${entity.contact_name}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.contact_name}</a>` : ''}
+                            <strong>Contact:</strong> ${entity.contact_name}
+                             ${entity.contact_email ? `<br><a href="mailto:${entity.contact_email}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.contact_email}</a>` : ''}
                         </div>` : ''}
 
                         <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
