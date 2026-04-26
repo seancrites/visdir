@@ -18,6 +18,7 @@
          "city": "Anytown",
          "address": "123 Main Street, Anytown, ST 12345",
          "website": "https://example.com",
+         "school": "https://k12example.com",
          "contact_name": "Jane Doe",
          "contact_email": "jane@example.com",
          "phone": "(555) 123-4567",
