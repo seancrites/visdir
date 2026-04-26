@@ -4,7 +4,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Contact - VisDir</title>
+   <title>Contact - WELS Alaska</title>
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
       tailwind.config = {
@@ -30,9 +30,9 @@
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
          <div class="flex items-center gap-x-3" id="nav-brand"></div>
          <div class="flex items-center gap-x-8">
-            <a href="index.html" class="hover:text-amber-600 font-medium">Directory</a>
-            <a href="map.html" class="hover:text-amber-600 font-medium">Map</a>
-            <a href="contact.html" class="text-amber-600 font-medium">Contact</a>
+            <a href="index.html" class="hover:text-amber-600 font-medium">Churches</a>
+            <a href="map.html" class="hover:text-amber-600 font-medium">Interactive Map</a>
+            <a href="contact.html" class="text-amber-600 font-medium">Contact Me</a>
             <button onclick="toggleDarkMode()"
                class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                aria-label="Toggle dark mode">
@@ -43,9 +43,9 @@
    </nav>
 
    <div class="max-w-2xl mx-auto px-6 py-16">
-      <h1 class="text-4xl font-bold text-center mb-3">Get in Touch</h1>
-      <p class="text-center text-slate-600 dark:text-slate-400 mb-10">Have feedback, corrections, or want to add
-         something? We'd love to hear from you.</p>
+      <h1 class="text-4xl font-bold text-center mb-3">Contact Us</h1>
+      <p class="text-center text-slate-600 dark:text-slate-400 mb-10">Need to report a change, add a church, or have
+         feedback? Send us a message.</p>
 
       <div id="status-message" class="hidden mb-8 rounded-2xl p-6 text-center"></div>
 
@@ -115,9 +115,9 @@
             const site = data.site || {};
 
             document.getElementById('nav-brand').innerHTML = `
-                    ${site.logo_svg || ''}
-                    <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
-                `;
+                     ${site.luther_rose_svg || site.logo_svg || ''}
+                     <h1 class="text-2xl font-bold">${site.name || 'WELS Alaska'}</h1>
+                 `;
 
             document.getElementById('motto-text').textContent = site.motto || '';
 
@@ -132,7 +132,7 @@
                parts.push(`Maintained by ${maintainer}`);
             }
             if (showContact) {
-               parts.push('<a href="contact.html" class="hover:text-amber-600">Contact</a>');
+               parts.push('<a href="contact.html" class="hover:text-amber-600">Contact Me</a>');
             }
             if (supportUrl && supportLabel) {
                parts.push(`<a href="${supportUrl}" target="_blank" class="hover:text-amber-600">${supportLabel}</a>`);

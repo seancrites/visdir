@@ -4,7 +4,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>VisDir – Interactive Map</title>
+   <title>WELS Churches in Alaska – Interactive Map</title>
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
       tailwind.config = {
@@ -22,15 +22,13 @@
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
-
-   <!-- NAV -->
    <nav class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
          <div class="flex items-center gap-x-3" id="nav-brand"></div>
          <div class="flex items-center gap-x-8">
-            <a href="index.html" class="hover:text-amber-600 font-medium">Directory</a>
-            <a href="map.html" class="hover:text-amber-600 font-medium">Map</a>
-            <a href="contact.html" class="hover:text-amber-600 font-medium">Contact</a>
+            <a href="index.html" class="hover:text-amber-600 font-medium">Churches</a>
+            <a href="map.html" class="text-amber-600 font-medium">Interactive Map</a>
+            <a href="contact.html" class="hover:text-amber-600 font-medium">Contact Me</a>
             <button onclick="toggleDarkMode()"
                class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                aria-label="Toggle dark mode">
@@ -80,8 +78,8 @@
                const site = data.site || {};
 
                document.getElementById('nav-brand').innerHTML = `
-                        ${site.logo_svg || ''}
-                        <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                        ${site.luther_rose_svg || site.logo_svg || ''}
+                        <h1 class="text-2xl font-bold">${site.name || 'WELS Alaska'}</h1>
                     `;
 
                document.getElementById('motto-text').textContent = site.motto || '';
@@ -97,7 +95,7 @@
                   parts.push(`Maintained by ${maintainer}`);
                }
                if (showContact) {
-                  parts.push('<a href="contact.html" class="hover:text-amber-600">Contact</a>');
+                  parts.push('<a href="contact.html" class="hover:text-amber-600">Contact Me</a>');
                }
                if (supportUrl && supportLabel) {
                   parts.push(`<a href="${supportUrl}" target="_blank" class="hover:text-amber-600">${supportLabel}</a>`);
@@ -110,22 +108,22 @@
             });
       }
 
-      function renderMap(entities) {
-         const map = L.map('map').setView([40.0, -100.0], 4);
-
+      function renderMap(churches) {
+         const map = L.map('map').setView([64.0, -150.0], 5);
          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
          }).addTo(map);
 
-         entities.forEach(entity => {
-            if (entity.lat && entity.lng) {
+         churches.forEach(church => {
+            if (church.lat && church.lng) {
                const popup = `
-                        <b>${entity.name}</b><br>
-                        ${entity.city}<br>
-                        ${entity.address}<br>
-                        ${entity.website ? `<a href="${entity.website}" target="_blank">Visit Website</a>` : ''}
+                        <b>${church.name}</b><br>
+                        ${church.city}, AK<br>
+                        ${church.address}<br>
+                        ${church.pastor_name ? `Pastor: ${church.pastor_name}<br>` : ''}
+                        ${church.website ? `<a href="${church.website}" target="_blank">Visit Website</a>` : ''}
                     `;
-               L.marker([entity.lat, entity.lng]).addTo(map).bindPopup(popup);
+               L.marker([church.lat, church.lng]).addTo(map).bindPopup(popup);
             }
          });
       }
