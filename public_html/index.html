@@ -165,6 +165,7 @@
                         <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
                             ${entity.phone ? `<div class="flex items-center"><i class="fa-solid fa-phone mr-2 text-slate-400"></i><a href="tel:${entity.phone.replace(/[^0-9+]/g, '')}" class="hover:underline">${entity.phone}</a></div>` : ''}
                             ${entity.email ? `<div class="flex items-center"><i class="fa-solid fa-envelope mr-2 text-slate-400"></i><a href="mailto:${entity.email}" class="hover:underline">${entity.email}</a></div>` : ''}
+                            ${entity.school && entity.school.trim() ? `<div class="flex items-center"><i class="fa-solid fa-school mr-2 text-slate-400"></i><a href="${entity.school}" target="_blank" class="hover:underline">${entity.school}</a></div>` : ''}
                         </div>
 
                         <a href="${googleMapsUrl}" target="_blank" class="inline-flex items-center text-amber-600 hover:text-amber-700 mt-3"><i class="fa-solid fa-map-marker-alt mr-2"></i>View on Map</a>
