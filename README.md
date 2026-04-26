@@ -55,6 +55,7 @@ Update `public_html/data.json` with your own site info and entities.
 | `year` | number | Copyright year |
 | `maintainer` | string | Name shown in the footer as "Maintained by [name]" (omit to hide) |
 | `show_contact` | boolean | Set to `true` to show a "Contact" link in the footer |
+| `contact_label` | string | Label shown before each entity's `contact_name` in the cards (default: `Contact`) |
 | `support_url` | string | URL for the support link in the footer |
 | `support_label` | string | Label for the support link (shown only if `support_url` is also set) |
 | `logo_svg` | string | Inline SVG markup for the nav logo |
