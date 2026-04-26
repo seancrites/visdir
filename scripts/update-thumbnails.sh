@@ -41,7 +41,7 @@ fi
     set -u
 
     cd "${SCRIPTS_DIR}"
-    python update-thumbnails.py
+    python3 update-thumbnails.py
 )
 
 echo "─────────────────────────────────────"
