@@ -134,11 +134,11 @@
 
                document.getElementById('footer-text').innerHTML = parts.join(' • ');
 
-               renderEntities(data.entities || []);
+               renderEntities(data.entities || [], site);
             });
       }
 
-      function renderEntities(entities) {
+      function renderEntities(entities, site) {
          const grid = document.getElementById('entity-grid');
          grid.innerHTML = '';
 
@@ -158,7 +158,7 @@
 
                         ${entity.contact_name ? `
                         <div class="mt-4 text-sm">
-                            <strong>Contact:</strong> ${entity.contact_name}
+                            <strong>${(site && site.contact_label) || 'Contact'}:</strong> ${entity.contact_name}
                              ${entity.contact_email ? `<br><a href="mailto:${entity.contact_email}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.contact_email}</a>` : ''}
                         </div>` : ''}
 
