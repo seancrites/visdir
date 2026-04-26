@@ -4,7 +4,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>VisDir</title>
+   <title>WELS Churches in Alaska</title>
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
       tailwind.config = {
@@ -13,11 +13,11 @@
    </script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
    <style>
-      .entity-card {
+      .church-card {
          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      .entity-card:hover {
+      .church-card:hover {
          transform: translateY(-4px);
          box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
       }
@@ -28,26 +28,27 @@
       }
    </style>
 
-   <!-- SEO -->
+   <!-- SEO & Social Meta (updated to new domain) -->
    <meta name="description"
-      content="A clean, modern visual directory template with live thumbnails and interactive map.">
-   <meta property="og:title" content="VisDir">
-   <meta property="og:description" content="Build beautiful visual directories with one JSON file.">
+      content="Complete directory of Wisconsin Evangelical Lutheran Synod (WELS) churches in Alaska.">
+   <meta property="og:title" content="WELS Churches in Alaska">
+   <meta property="og:description"
+      content="Official directory of Wisconsin Evangelical Lutheran Synod churches in Alaska">
    <meta property="og:type" content="website">
-   <meta property="og:url" content="https://yourdomain.com">
-   <link rel="canonical" href="https://yourdomain.com">
+   <meta property="og:url" content="https://welsak.com">
+   <meta property="og:image" content="https://welsak.com/thumbnails/faith-lutheran-anchorage.png">
+   <link rel="canonical" href="https://welsak.com">
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
-
    <!-- NAV -->
    <nav class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
          <div class="flex items-center gap-x-3" id="nav-brand"></div>
          <div class="flex items-center gap-x-8">
-            <a href="index.html" class="hover:text-amber-600 font-medium">Directory</a>
-            <a href="map.html" class="hover:text-amber-600 font-medium">Map</a>
-            <a href="contact.html" class="hover:text-amber-600 font-medium">Contact</a>
+            <a href="index.html" class="text-amber-600 font-medium">Churches</a>
+            <a href="map.html" class="hover:text-amber-600 font-medium">Interactive Map</a>
+            <a href="contact.html" class="hover:text-amber-600 font-medium">Contact Me</a>
             <button onclick="toggleDarkMode()"
                class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                aria-label="Toggle dark mode">
@@ -65,7 +66,7 @@
 
       <div id="status" class="text-center py-8"></div>
 
-      <div id="entity-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+      <div id="church-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
    </div>
 
    <!-- FOOTER -->
@@ -99,18 +100,18 @@
          updateThemeIcon();
       }
 
-      function renderSiteAndEntities() {
+      function renderSiteAndChurches() {
          fetch('data.json?' + Date.now())
             .then(r => r.json())
             .then(data => {
                const site = data.site || {};
 
                document.getElementById('nav-brand').innerHTML = `
-                        ${site.logo_svg || ''}
-                        <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                        ${site.luther_rose_svg || site.logo_svg || ''}
+                        <h1 class="text-2xl font-bold">${site.name || 'WELS Alaska'}</h1>
                     `;
 
-               document.getElementById('site-name').textContent = site.name || 'VisDir';
+               document.getElementById('site-name').textContent = site.name || 'WELS Churches in Alaska';
                document.getElementById('site-slogan').textContent = site.slogan || '';
                document.getElementById('motto-text').textContent = site.motto || '';
 
@@ -125,7 +126,7 @@
                   parts.push(`Maintained by ${maintainer}`);
                }
                if (showContact) {
-                  parts.push('<a href="contact.html" class="hover:text-amber-600">Contact</a>');
+                  parts.push('<a href="contact.html" class="hover:text-amber-600">Contact Me</a>');
                }
                if (supportUrl && supportLabel) {
                   parts.push(`<a href="${supportUrl}" target="_blank" class="hover:text-amber-600">${supportLabel}</a>`);
@@ -134,41 +135,47 @@
 
                document.getElementById('footer-text').innerHTML = parts.join(' • ');
 
-               renderEntities(data.entities || [], site);
+               renderChurches(data.entities || []);
             });
       }
 
-      function renderEntities(entities, site) {
-         const grid = document.getElementById('entity-grid');
+      function renderChurches(churches) {
+         const grid = document.getElementById('church-grid');
          grid.innerHTML = '';
 
-         entities.forEach(entity => {
-            if (!entity.website) return;
+         churches.forEach(church => {
+            if (!church.website || church.take_thumbnail === false) return;
 
             const card = document.createElement('div');
-            card.className = 'entity-card bg-white dark:bg-slate-900 rounded-2xl shadow overflow-hidden border border-slate-100 dark:border-slate-700';
+            card.className = 'church-card bg-white dark:bg-slate-900 rounded-2xl shadow overflow-hidden border border-slate-100 dark:border-slate-700';
 
-            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entity.address + ', ' + entity.city)}`;
+            const streamBadge = church.stream_url ?
+               `<a href="${church.stream_url}" target="_blank" class="inline-flex items-center px-3 py-1 text-xs font-medium bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 rounded-full hover:bg-emerald-200"><i class="fa-solid fa-video mr-1"></i>Live Streaming</a>` : '';
+
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(church.address + ', ' + church.city + ', AK')}`;
 
             card.innerHTML = `
-                    <img src="thumbnails/${entity.slug}.png" alt="${entity.name}" class="thumbnail w-full" onerror="this.src='https://via.placeholder.com/480x280/cccccc/666666?text=No+Thumbnail';">
+                    <img src="thumbnails/${church.slug}.png" alt="${church.name} - ${church.city}, Alaska" class="thumbnail w-full" onerror="this.src='https://via.placeholder.com/480x280/cccccc/666666?text=No+Thumbnail';">
                     <div class="p-6">
-                        <h3 class="text-2xl font-semibold">${entity.name}</h3>
-                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${entity.address}</p>
+                        <h3 class="text-2xl font-semibold">${church.name}</h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${church.address}</p>
 
-                        ${entity.contact_name ? `
+                        ${church.pastor_name ? `
                         <div class="mt-4 text-sm">
-                            <strong>${(site && site.contact_label) || 'Contact'}:</strong> ${entity.contact_name}
-                             ${entity.contact_email ? `<br><a href="mailto:${entity.contact_email}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.contact_email}</a>` : ''}
+                            <strong>Pastor:</strong> ${church.pastor_name}
+                            ${church.pastor_email ? `<br><a href="mailto:${church.pastor_email}" class="text-slate-500 dark:text-slate-400 hover:underline">${church.pastor_email}</a>` : ''}
                         </div>` : ''}
 
                         <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
-                            ${entity.phone ? `<div class="flex items-center"><i class="fa-solid fa-phone mr-2 text-slate-400"></i><a href="tel:${entity.phone.replace(/[^0-9+]/g, '')}" class="hover:underline">${entity.phone}</a></div>` : ''}
-                            ${entity.email ? `<div class="flex items-center"><i class="fa-solid fa-envelope mr-2 text-slate-400"></i><a href="mailto:${entity.email}" class="hover:underline">${entity.email}</a></div>` : ''}
+                            ${church.phone ? `<div class="flex items-center whitespace-nowrap"><i class="fa-solid fa-phone mr-2 text-slate-400"></i><a href="tel:${church.phone.replace(/[^0-9+]/g, '')}" class="hover:underline">${church.phone}</a></div>` : ''}
+                            ${church.email ? `<div class="flex items-center whitespace-nowrap"><i class="fa-solid fa-envelope mr-2 text-slate-400"></i><a href="mailto:${church.email}" class="hover:underline">${church.email}</a></div>` : ''}
                         </div>
 
-                        <a href="${googleMapsUrl}" target="_blank" class="inline-flex items-center text-amber-600 hover:text-amber-700 mt-3"><i class="fa-solid fa-map-marker-alt mr-2"></i>View on Map</a>
-                        <a href="${entity.website}" target="_blank" class="mt-6 inline-flex items-center justify-center w-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 font-medium">Visit Website →</a>
+                        ${streamBadge}
+                        ${church.facebook ? `<a href="${church.facebook}" target="_blank" class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 mt-3"><i class="fa-brands fa-facebook mr-2"></i>Facebook</a>` : ''}
+                        ${church.youtube ? `<a href="${church.youtube}" target="_blank" class="inline-flex items-center text-red-600 dark:text-red-400 hover:text-red-800 mt-3"><i class="fa-brands fa-youtube mr-2"></i>YouTube</a>` : ''}
+                        <a href="${googleMapsUrl}" target="_blank" class="inline-flex items-center text-amber-600 hover:text-amber-700 mt-3"><i class="fa-solid fa-map-marker-alt mr-2"></i>View on Google Maps</a>
+                        ${church.website ? `<a href="${church.website}" target="_blank" class="mt-6 inline-flex items-center justify-center w-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 font-medium">Visit Website →</a>` : ''}
                     </div>
                 `;
             grid.appendChild(card);
@@ -177,7 +184,7 @@
 
       window.onload = () => {
          initTheme();
-         renderSiteAndEntities();
+         renderSiteAndChurches();
       };
    </script>
 </body>
