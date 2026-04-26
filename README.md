@@ -6,6 +6,8 @@ Build beautiful, responsive directories with live webpage thumbnails, interactiv
 
 Perfect for churches, clubs, teams, resources, businesses, schools, or any collection of entities.
 
+✨ **Live Demo:** <https://seancrites.github.io/visdir/>
+
 ---
 
 ## Features
