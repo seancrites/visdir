@@ -138,6 +138,39 @@
             });
       }
 
+      function extractContacts(entity, site) {
+         const contacts = [];
+
+         // Legacy check: if old style 'contact_name' exists, use only that
+         if (entity.contact_name !== undefined) {
+            contacts.push({
+               label: entity.contact_label || (site && site.contact_label) || 'Contact',
+               name: entity.contact_name,
+               email: entity.contact_email || null,
+               phone: entity.contact_phone || null
+            });
+            return contacts;
+         }
+
+         // Check for contactN_name fields, scan automatically
+         for (let n = 1; ; n++) {
+            const nameKey = `contact${n}_name`;
+            if (!(nameKey in entity) || !entity[nameKey]) {
+               // Break on first missing name - no more contacts after this
+               break;
+            }
+
+            contacts.push({
+               label: entity[`contact${n}_label`] || entity.contact_label || (site && site.contact_label) || 'Contact',
+               name: entity[nameKey],
+               email: entity[`contact${n}_email`] || null,
+               phone: entity[`contact${n}_phone`] || null
+            });
+         }
+
+         return contacts;
+      }
+
       function renderEntities(entities, site) {
          const grid = document.getElementById('entity-grid');
          grid.innerHTML = '';
@@ -156,17 +189,26 @@
                         <h3 class="text-2xl font-semibold">${entity.name}</h3>
                         <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${entity.address}</p>
 
-                        ${entity.contact_name ? `
-                        <div class="mt-4 text-sm">
-                            <strong>${(site && site.contact_label) || 'Contact'}:</strong> ${entity.contact_name}
-                             ${entity.contact_email ? `<br><a href="mailto:${entity.contact_email}" class="text-slate-500 dark:text-slate-400 hover:underline">${entity.contact_email}</a>` : ''}
-                        </div>` : ''}
-
-                        <div class="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+                        <div class="mt-3 flex flex-wrap gap-x-6 gap-y-3 text-sm">
                             ${entity.phone ? `<div class="flex items-center"><i class="fa-solid fa-phone mr-2 text-slate-400"></i><a href="tel:${entity.phone.replace(/[^0-9+]/g, '')}" class="hover:underline">${entity.phone}</a></div>` : ''}
                             ${entity.email ? `<div class="flex items-center"><i class="fa-solid fa-envelope mr-2 text-slate-400"></i><a href="mailto:${entity.email}" class="hover:underline">${entity.email}</a></div>` : ''}
                             ${entity.school && entity.school.trim() ? `<div class="flex items-center"><i class="fa-solid fa-school mr-2 text-slate-400"></i><a href="${entity.school}" target="_blank" class="hover:underline">${entity.school}</a></div>` : ''}
+                            ${entity.stream_url ? `<div class="flex items-center"><i class="fa-solid fa-video mr-2 text-slate-400"></i><a href="${entity.stream_url}" target="_blank" class="hover:underline">Live Stream</a></div>` : ''}
+                            ${entity.facebook ? `<div class="flex items-center"><i class="fa-brands fa-facebook mr-2 text-slate-400"></i><a href="${entity.facebook}" target="_blank" class="hover:underline">Facebook</a></div>` : ''}
+                            ${entity.youtube ? `<div class="flex items-center"><i class="fa-brands fa-youtube mr-2 text-slate-400"></i><a href="${entity.youtube}" target="_blank" class="hover:underline">YouTube</a></div>` : ''}
                         </div>
+
+                         ${(() => {
+                  const contacts = extractContacts(entity, site);
+                  if (contacts.length === 0) return '';
+
+                  return contacts.map(contact => `
+                            <div class="mt-4 text-sm">
+                                <strong>${contact.label}:</strong> ${contact.name}
+                                ${contact.email ? `<br><a href="mailto:${contact.email}" class="text-slate-500 dark:text-slate-400 hover:underline">${contact.email}</a>` : ''}
+                                ${contact.phone ? `<br><a href="tel:${contact.phone.replace(/[^0-9+]/g, '')}" class="text-slate-500 dark:text-slate-400 hover:underline">${contact.phone}</a>` : ''}
+                            </div>`).join('');
+               })()}
 
                         <a href="${googleMapsUrl}" target="_blank" class="inline-flex items-center text-amber-600 hover:text-amber-700 mt-3"><i class="fa-solid fa-map-marker-alt mr-2"></i>View on Map</a>
                         <a href="${entity.website}" target="_blank" class="mt-6 inline-flex items-center justify-center w-full bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white py-3 rounded-xl hover:bg-slate-800 font-medium">Visit Website →</a>

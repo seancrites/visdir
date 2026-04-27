@@ -77,12 +77,31 @@ Each object in the `entities` array supports:
 | `contact_email` | string | Contact person's email address |
 | `phone` | string | Phone number (clickable) |
 | `email` | string | Email address (clickable) |
+| `school` | string | School/institution website URL (clickable) |
 | `stream_url` | string | Live stream URL |
 | `facebook` | string | Facebook page URL |
 | `youtube` | string | YouTube channel URL |
 | `lat` | number | Latitude for the map pin |
 | `lng` | number | Longitude for the map pin |
 | `take_thumbnail` | boolean | Set to `false` to skip thumbnail generation for this entity |
+
+##### Multiple Contacts
+
+Entities support **unlimited number of contacts** using the following pattern:
+
+| Field | Type | Description |
+| ------- | ------ | ------------- |
+| `contactN_name` | string | **Required.** Name of contact person (N = 1, 2, 3, ...) |
+| `contactN_label` | string | Optional label for this contact (default: `Contact`) |
+| `contactN_email` | string | Email address for this contact |
+| `contactN_phone` | string | Phone number for this contact |
+
+###### Contact Logic Rules
+
+- Start numbering at `1` and increment sequentially (`contact1_name`, `contact2_name`, etc)
+- There is **no maximum limit** - add as many contacts as needed
+- If `contactN_name` is missing or empty, that contact and all higher-numbered contacts will be skipped
+- **Legacy Compatibility**: If the old style `contact_name` exists on an entity, it will be used *exclusively* and **all numbered contacts will be ignored completely** for that entity
 
 ##### Footer behavior
 
