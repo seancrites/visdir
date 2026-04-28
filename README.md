@@ -77,7 +77,8 @@ Each object in the `entities` array supports:
 | `contact_email` | string | Contact person's email address |
 | `phone` | string | Phone number (clickable) |
 | `email` | string | Email address (clickable) |
-| `school` | string | School/institution website URL (clickable) |
+| `school_url` | string | School/institution website URL (clickable) |
+| `school_label` | string | Optional display label for school (default: shows the URL) |
 | `stream_url` | string | Live stream URL |
 | `facebook` | string | Facebook page URL |
 | `youtube` | string | YouTube channel URL |
@@ -101,7 +102,25 @@ Entities support **unlimited number of contacts** using the following pattern:
 - Start numbering at `1` and increment sequentially (`contact1_name`, `contact2_name`, etc)
 - There is **no maximum limit** - add as many contacts as needed
 - If `contactN_name` is missing or empty, that contact and all higher-numbered contacts will be skipped
-- **Legacy Compatibility**: If the old style `contact_name` exists on an entity, it will be used *exclusively* and **all numbered contacts will be ignored completely** for that entity
+- **Legacy Compatibility**: The old style single `contact_name` field is fully supported
+- **Improved Behaviour**: You may use both singular `contact_name` **and** numbered `contactN_name` fields at the same time. Legacy singular contact will be shown first, followed by all numbered contacts in order.
+
+##### Multiple Schools
+
+Entities support **unlimited number of schools** using the following pattern:
+
+| Field | Type | Description |
+| ------- | ------ | ------------- |
+| `schoolN_url` | string | **Required.** URL for school/institution (N = 1, 2, 3, ...) |
+| `schoolN_label` | string | Optional display label for this school (default: shows the URL) |
+
+###### School Logic Rules
+
+- Start numbering at `1` and increment sequentially (`school1_url`, `school2_url`, etc)
+- There is **no maximum limit** - add as many schools as needed
+- If `schoolN_url` is missing or empty, that school and all higher-numbered schools will be skipped
+- **Legacy Compatibility**: The old style single `school` field is fully supported
+- **Improved Behaviour**: You may use both singular `school` **and** numbered `schoolN_url` fields at the same time. Legacy singular school will be shown first, followed by all numbered schools in order.
 
 ##### Footer behavior
 
