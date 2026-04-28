@@ -50,8 +50,13 @@
       <div id="status-message" class="hidden mb-8 rounded-2xl p-6 text-center"></div>
 
       <form action="contact.php" method="POST" class="space-y-6 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow">
-         <!-- Honeypot anti-spam -->
-         <input type="text" name="honeypot" style="display:none" tabindex="-1" autocomplete="off">
+         <!-- Anti-Spam Fields -->
+         <!-- Honeypot: positioned offscreen, bots love filling these - humans will never see -->
+         <input type="text" name="website" style="position:absolute; left:-9999px; opacity:0; pointer-events:none;"
+            tabindex="-1" autocomplete="off">
+
+         <!-- Time Gate: populated when page loads, minimum submit delay enforced -->
+         <input type="hidden" name="ts" id="ts" value="">
 
          <div>
             <label class="block text-sm font-medium mb-1">Your Name</label>
@@ -161,6 +166,9 @@
       window.onload = () => {
          initTheme();
          showStatusMessage();
+
+         // Anti-Spam: Set page load timestamp for minimum submission delay check
+         document.getElementById('ts').value = Math.floor(Date.now() / 1000);
       };
    </script>
 </body>
