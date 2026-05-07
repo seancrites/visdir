@@ -80,6 +80,73 @@ if (empty($name) || empty($email) || empty($message) || !filter_var($email, FILT
    exit;
 }
 
+# ==================== CAPTCHA VALIDATION ====================
+
+# --- Cloudflare Turnstile (Recommended) ---
+# Uncomment the block below and add your keys
+/*
+$turnstile_token = $_POST['cf-turnstile-response'] ?? '';
+if (empty($turnstile_token)) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+$secret = "YOUR_TURNSTILE_SECRET_KEY_HERE";
+$response = file_get_contents("https://challenges.cloudflare.com/turnstile/v0/siteverify", false, stream_context_create([
+    'http' => [
+        'method' => 'POST',
+        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query(['secret' => $secret, 'response' => $turnstile_token])
+    ]
+]));
+$resp = json_decode($response);
+if (!$resp || !$resp->success) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+*/
+
+# --- Google reCAPTCHA v3 ---
+# Uncomment and add your keys
+/*
+$recaptcha_token = $_POST['recaptcha_token'] ?? '';
+if (empty($recaptcha_token)) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+$secret = "YOUR_RECAPTCHA_SECRET_KEY_HERE";
+$resp = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secret&response=$recaptcha_token");
+$resp = json_decode($resp);
+if (!$resp || $resp->score < 0.5) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+*/
+
+# --- hCaptcha ---
+# Uncomment and add your keys
+/*
+$hcaptcha_token = $_POST['h-captcha-response'] ?? '';
+if (empty($hcaptcha_token)) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+$secret = "YOUR_HCAPTCHA_SECRET_KEY_HERE";
+$resp = file_get_contents("https://hcaptcha.com/siteverify", false, stream_context_create([
+    'http' => [
+        'method' => 'POST',
+        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query(['secret' => $secret, 'response' => $hcaptcha_token])
+    ]
+]));
+$resp = json_decode($resp);
+if (!$resp || !$resp->success) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+*/
+
+# ==================== SEND EMAIL ====================
+
 # =============================================================================
 #                              EMAIL HANDLING
 # =============================================================================

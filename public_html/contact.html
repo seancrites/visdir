@@ -21,6 +21,17 @@
          box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
       }
    </style>
+
+   <!-- ==================== CAPTCHA OPTIONS (choose ONE) ==================== -->
+
+   <!-- Option 1: Cloudflare Turnstile (Recommended - privacy friendly) -->
+   <!-- <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> -->
+
+   <!-- Option 2: Google reCAPTCHA v3 (Invisible) -->
+   <!-- <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY_HERE"></script> -->
+
+   <!-- Option 3: hCaptcha -->
+   <!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
@@ -75,6 +86,21 @@
             <textarea name="message" rows="6" required
                class="form-input w-full px-5 py-4 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none"></textarea>
          </div>
+
+         <!-- ==================== CAPTCHA WIDGETS ==================== -->
+
+         <!-- Cloudflare Turnstile (Recommended) -->
+         <!-- <div class="flex justify-center">
+                <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
+            </div> -->
+
+         <!-- Google reCAPTCHA v3 (Invisible) -->
+         <!-- <input type="hidden" id="recaptcha_token" name="recaptcha_token"> -->
+
+         <!-- hCaptcha -->
+         <!-- <div class="flex justify-center">
+                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
+            </div> -->
 
          <button type="submit"
             class="w-full bg-slate-900 hover:bg-amber-600 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-amber-600 text-white py-5 rounded-2xl font-semibold text-lg transition">
