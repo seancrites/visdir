@@ -12,15 +12,6 @@
       }
    </script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-   <style>
-      .form-input {
-         transition: all 0.2s;
-      }
-
-      .form-input:focus {
-         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
-      }
-   </style>
 
    <!-- ==================== CAPTCHA OPTIONS (choose ONE) ==================== -->
 
@@ -32,6 +23,16 @@
 
    <!-- Option 3: hCaptcha -->
    <!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
+
+   <style>
+      .form-input {
+         transition: all 0.2s;
+      }
+
+      .form-input:focus {
+         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+      }
+   </style>
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
@@ -197,6 +198,19 @@
          document.getElementById('ts').value = Math.floor(Date.now() / 1000);
       };
    </script>
+
+   // Uncomment the block below when using Google reCAPTCHA v3 and add your site key
+   <!-- <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY_HERE', {action: 'submit'})
+            .then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+                e.target.submit();   // now submit the form
+            });
+    });
+   </script> -->
+
 </body>
 
 </html>

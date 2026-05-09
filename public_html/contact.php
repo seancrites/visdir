@@ -2,10 +2,9 @@
 # =============================================================================
 # contact.php
 #
-# PURPOSE: Secure contact form handler for VisDir
-#          Layered anti-spam protections + proper email headers
-# AUTHOR: Generated for the visdir project
-# VERSION: 1.1.0
+# PURPOSE: Secure contact form with modular CAPTCHA support
+# AUTHOR: Generated for visdir project
+# VERSION: 1.2.0
 # =============================================================================
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST")
@@ -80,10 +79,13 @@ if (empty($name) || empty($email) || empty($message) || !filter_var($email, FILT
    exit;
 }
 
-# ==================== CAPTCHA VALIDATION ====================
+# =============================================================================
+#                            CAPTCHA VALIDATION
+# =============================================================================
+# Uncomment the block below to enable CAPTCHA validation. Make sure to add
+# your keys.
 
 # --- Cloudflare Turnstile (Recommended) ---
-# Uncomment the block below and add your keys
 /*
 $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
 if (empty($turnstile_token)) {
@@ -106,7 +108,6 @@ if (!$resp || !$resp->success) {
 */
 
 # --- Google reCAPTCHA v3 ---
-# Uncomment and add your keys
 /*
 $recaptcha_token = $_POST['recaptcha_token'] ?? '';
 if (empty($recaptcha_token)) {
@@ -123,7 +124,6 @@ if (!$resp || $resp->score < 0.5) {
 */
 
 # --- hCaptcha ---
-# Uncomment and add your keys
 /*
 $hcaptcha_token = $_POST['h-captcha-response'] ?? '';
 if (empty($hcaptcha_token)) {
@@ -144,8 +144,6 @@ if (!$resp || !$resp->success) {
     exit;
 }
 */
-
-# ==================== SEND EMAIL ====================
 
 # =============================================================================
 #                              EMAIL HANDLING
