@@ -6,7 +6,7 @@
 #          (activate venv → run → deactivate)
 #
 # AUTHOR: Generated for the visdir project
-# VERSION: 1.4.0
+# VERSION: v1.5.0
 # DATE: 2026-04-23
 # =============================================================================
 

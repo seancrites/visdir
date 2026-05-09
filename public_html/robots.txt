@@ -1,4 +1,9 @@
+# visdir v1.5.0
+# https://github.com/seancrites/visdir
+#
+# robots.txt for visdir visual directory
+
 User-agent: *
-Allow: /
+Disallow: /thumbnails/
 
 Sitemap: https://yourdomain.com/sitemap.xml

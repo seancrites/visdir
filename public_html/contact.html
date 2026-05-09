@@ -4,14 +4,28 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Contact - VisDir</title>
+   <meta name="generator" content="visdir">
+   <meta name="version" content="1.5.0">
+   <meta name="description"
+      content="Secure contact form with optional CAPTCHA (Cloudflare Turnstile, reCAPTCHA v3, hCaptcha) and layered anti-spam protection.">
+   <meta property="og:title" content="Contact — VisDir">
+   <meta property="og:description" content="Send us a message through our spam-resistant contact form.">
+   <meta property="og:type" content="website">
+   <meta property="og:url" content="https://yourdomain.com/contact.html">
+
+   <link rel="canonical" href="https://yourdomain.com/contact.html">
+
+   <title>Contact — VisDir</title>
+
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
       tailwind.config = {
          darkMode: 'class'
       }
    </script>
+
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
    <style>
       .form-input {
          transition: all 0.2s;
@@ -21,6 +35,17 @@
          box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
       }
    </style>
+
+   <!-- ==================== CAPTCHA OPTIONS (choose ONE) ==================== -->
+
+   <!-- Option 1: Cloudflare Turnstile (Recommended - privacy friendly) -->
+   <!-- <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> -->
+
+   <!-- Option 2: Google reCAPTCHA v3 (Invisible) -->
+   <!-- <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY_HERE"></script> -->
+
+   <!-- Option 3: hCaptcha -->
+   <!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
@@ -50,8 +75,13 @@
       <div id="status-message" class="hidden mb-8 rounded-2xl p-6 text-center"></div>
 
       <form action="contact.php" method="POST" class="space-y-6 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow">
-         <!-- Honeypot anti-spam -->
-         <input type="text" name="honeypot" style="display:none" tabindex="-1" autocomplete="off">
+         <!-- Anti-Spam Fields -->
+         <!-- Honeypot: positioned offscreen, bots love filling these - humans will never see -->
+         <input type="text" name="website" style="position:absolute; left:-9999px; opacity:0; pointer-events:none;"
+            tabindex="-1" autocomplete="off">
+
+         <!-- Time Gate: populated when page loads, minimum submit delay enforced -->
+         <input type="hidden" name="ts" id="ts" value="">
 
          <div>
             <label class="block text-sm font-medium mb-1">Your Name</label>
@@ -70,6 +100,21 @@
             <textarea name="message" rows="6" required
                class="form-input w-full px-5 py-4 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none"></textarea>
          </div>
+
+         <!-- ==================== CAPTCHA WIDGETS ==================== -->
+
+         <!-- Cloudflare Turnstile (Recommended) -->
+         <!-- <div class="flex justify-center">
+                <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
+            </div> -->
+
+         <!-- Google reCAPTCHA v3 (Invisible) -->
+         <!-- <input type="hidden" id="recaptcha_token" name="recaptcha_token"> -->
+
+         <!-- hCaptcha -->
+         <!-- <div class="flex justify-center">
+                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
+            </div> -->
 
          <button type="submit"
             class="w-full bg-slate-900 hover:bg-amber-600 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-amber-600 text-white py-5 rounded-2xl font-semibold text-lg transition">
@@ -161,8 +206,24 @@
       window.onload = () => {
          initTheme();
          showStatusMessage();
+
+         // Anti-Spam: Set page load timestamp for minimum submission delay check
+         document.getElementById('ts').value = Math.floor(Date.now() / 1000);
       };
    </script>
+
+   // Uncomment the block below when using Google reCAPTCHA v3 and add your site key
+   <!-- <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY_HERE', {action: 'submit'})
+            .then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+                e.target.submit();   // now submit the form
+            });
+    });
+   </script> -->
+
 </body>
 
 </html>

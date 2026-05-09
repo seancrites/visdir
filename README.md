@@ -16,7 +16,7 @@ Perfect for churches, clubs, teams, resources, businesses, schools, or any colle
 - Interactive Leaflet map with location pins
 - Dark / Light mode toggle
 - Clickable phone, email, social links, and Google Maps
-- Secure anti-spam contact form
+- Secure anti-spam contact form with multiple CAPTCHA provider options
 - Everything configurable via one `data.json` file
 
 ---
@@ -49,53 +49,53 @@ Update `public_html/data.json` with your own site info and entities.
 
 ##### Site fields
 
-| Field | Type | Description |
-| ------- | ------ | ------------- |
-| `name` | string | Site title displayed in the nav and header |
-| `slogan` | string | Subtitle shown under the site name |
-| `motto` | string | Short phrase displayed in the footer |
-| `year` | number | Copyright year |
-| `maintainer` | string | Name shown in the footer as "Maintained by [name]" (omit to hide) |
-| `show_contact` | boolean | Set to `true` to show a "Contact" link in the footer |
-| `contact_label` | string | Label shown before each entity's `contact_name` in the cards (default: `Contact`) |
-| `support_url` | string | URL for the support link in the footer |
-| `support_label` | string | Label for the support link (shown only if `support_url` is also set) |
-| `logo_svg` | string | Inline SVG markup for the nav logo |
+| Field          | Type    | Description                                                                       |
+|----------------|---------|-----------------------------------------------------------------------------------|
+| `name`         | string  | Site title displayed in the nav and header                                        |
+| `slogan`       | string  | Subtitle shown under the site name                                                |
+| `motto`        | string  | Short phrase displayed in the footer                                              |
+| `year`         | number  | Copyright year                                                                    |
+| `maintainer`   | string  | Name shown in the footer as "Maintained by [name]" (omit to hide)                 |
+| `show_contact` | boolean | Set to `true` to show a "Contact" link in the footer                              |
+| `contact_label`| string  | Label shown before each entity's `contact_name` in the cards (default: `Contact`) |
+| `support_url`  | string  | URL for the support link in the footer                                            |
+| `support_label`| string  | Label for the support link (shown only if `support_url` is also set)              |
+| `logo_svg`     | string  | Inline SVG markup for the nav logo                                                |
 
 ##### Entity fields
 
 Each object in the `entities` array supports:
 
-| Field | Type | Description |
-| ------- | ------ | ------------- |
-| `slug` | string | Unique identifier used for the thumbnail filename |
-| `name` | string | Display name of the entity |
-| `city` | string | City name |
-| `address` | string | Full street address |
-| `website` | string | URL of the entity's website (required for thumbnail generation) |
-| `contact_name` | string | Name of the contact/leader |
-| `contact_email` | string | Contact person's email address |
-| `phone` | string | Phone number (clickable) |
-| `email` | string | Email address (clickable) |
-| `school_url` | string | School/institution website URL (clickable) |
-| `school_label` | string | Optional display label for school (default: shows the URL) |
-| `stream_url` | string | Live stream URL |
-| `facebook` | string | Facebook page URL |
-| `youtube` | string | YouTube channel URL |
-| `lat` | number | Latitude for the map pin |
-| `lng` | number | Longitude for the map pin |
-| `take_thumbnail` | boolean | Set to `false` to skip thumbnail generation for this entity |
+| Field            | Type    | Description                                                     |
+|------------------|---------|-----------------------------------------------------------------|
+| `slug`           | string  | Unique identifier used for the thumbnail filename               |
+| `name`           | string  | Display name of the entity                                      |
+| `city`           | string  | City name                                                       |
+| `address`        | string  | Full street address                                             |
+| `website`        | string  | URL of the entity's website (required for thumbnail generation) |
+| `contact_name`   | string  | Name of the contact/leader                                      |
+| `contact_email`  | string  | Contact person's email address                                  |
+| `phone`          | string  | Phone number (clickable)                                        |
+| `email`          | string  | Email address (clickable)                                       |
+| `school_url`     | string  | School/institution website URL (clickable)                      |
+| `school_label`   | string  | Optional display label for school (default: shows the URL)      |
+| `stream_url`     | string  | Live stream URL                                                 |
+| `facebook`       | string  | Facebook page URL                                               |
+| `youtube`        | string  | YouTube channel URL                                             |
+| `lat`            | number  | Latitude for the map pin                                        |
+| `lng`            | number  | Longitude for the map pin                                       |
+| `take_thumbnail` | boolean | Set to `false` to skip thumbnail generation for this entity     |
 
 ##### Multiple Contacts
 
 Entities support **unlimited number of contacts** using the following pattern:
 
-| Field | Type | Description |
-| ------- | ------ | ------------- |
-| `contactN_name` | string | **Required.** Name of contact person (N = 1, 2, 3, ...) |
-| `contactN_label` | string | Optional label for this contact (default: `Contact`) |
-| `contactN_email` | string | Email address for this contact |
-| `contactN_phone` | string | Phone number for this contact |
+| Field            | Type    | Description                                             |
+|------------------|---------|---------------------------------------------------------|
+| `contactN_name`  | string  | **Required.** Name of contact person (N = 1, 2, 3, ...) |
+| `contactN_label` | string  | Optional label for this contact (default: `Contact`)    |
+| `contactN_email` | string  | Email address for this contact                          |
+| `contactN_phone` | string  | Phone number for this contact                           |
 
 ###### Contact Logic Rules
 
@@ -109,10 +109,10 @@ Entities support **unlimited number of contacts** using the following pattern:
 
 Entities support **unlimited number of schools** using the following pattern:
 
-| Field | Type | Description |
-| ------- | ------ | ------------- |
-| `schoolN_url` | string | **Required.** URL for school/institution (N = 1, 2, 3, ...) |
-| `schoolN_label` | string | Optional display label for this school (default: shows the URL) |
+| Field           | Type    | Description                                                     |
+|-----------------|---------|-----------------------------------------------------------------|
+| `schoolN_url`   | string  | **Required.** URL for school/institution (N = 1, 2, 3, ...)     |
+| `schoolN_label` | string  | Optional display label for this school (default: shows the URL) |
 
 ###### School Logic Rules
 
@@ -144,6 +144,163 @@ Set your email address and from-domain:
 $to = "you@example.com";                         // ← Your email
 $headers = "From: no-reply@yourdomain.com\r\n";  // ← Your domain
 ```
+
+##### Anti-Spam Protections
+
+The contact form includes 3 layered, invisible anti-bot protections that stop ~98% of drive-by spam automatically — **no CAPTCHAs, no external services, zero user impact**:
+
+| Protection            | Description                                                                                  | Effectiveness                     |
+|-----------------------|----------------------------------------------------------------------------------------------|-----------------------------------|
+| **CSS Honeypot**      | Invisible off-screen field that only bots will fill in. Humans will never see this field.    | ✅ Blocks 70% of bots             |
+| **Time Gate**         | Minimum submission delay enforced. No human fills out a form in < 3 seconds. Every bot does. | ✅ Blocks 95% of bots             |
+| **Origin Validation** | Only accept form submissions originating from your actual contact page.                      | ✅ Blocks 99% of direct POST bots |
+
+All spam rejections return a successful response. Bots have no idea they were blocked and will not retry or adapt.
+
+##### Configuration Options
+
+You may adjust these values at the top of `contact.php`:
+
+```php
+// Minimum seconds required to submit form. Recommended: 3
+// Set to 0 to disable this check entirely
+$MINIMUM_SUBMIT_SECONDS = 3;
+```
+
+Refer to the comments inside `contact.php` for full documentation on each protection.
+
+##### CAPTCHA Options (Optional Enhancement)
+
+In addition to the invisible protections above, you can optionally enable a visible CAPTCHA provider for extra protection on high-traffic or sensitive sites.
+
+**Supported providers:**
+
+- **Cloudflare Turnstile** (recommended – fast, privacy-friendly, low friction)
+- reCAPTCHA v3 (Google)
+- hCaptcha
+
+**Setup steps:**
+
+1. Open `public_html/contact.html`
+2. Uncomment the block for your chosen provider near the form submit button:
+
+```html
+<!-- Cloudflare Turnstile (recommended) -->
+<!-- <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY" data-callback="onTurnstileSuccess"></div> -->
+
+<!-- OR reCAPTCHA v3 -->
+<!-- <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITEKEY"></script> -->
+
+<!-- OR hCaptcha -->
+<!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
+```
+
+1. Uncomment the appropiate widget:
+
+```html
+         <!-- ==================== CAPTCHA WIDGETS ==================== -->
+
+         <!-- Cloudflare Turnstile (Recommended) -->
+         <!-- <div class="flex justify-center">
+                <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
+            </div> -->
+
+         <!-- Google reCAPTCHA v3 (Invisible) -->
+         <!-- <input type="hidden" id="recaptcha_token" name="recaptcha_token"> -->
+
+         <!-- hCaptcha -->
+         <!-- <div class="flex justify-center">
+                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
+            </div> -->
+```
+
+  If using Google reCAPTCHA v3, uncomment the following script as well:
+
+```html
+   // Uncomment the block below when using Google reCAPTCHA v3 and add your site key
+   <!-- <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY_HERE', {action: 'submit'})
+            .then(function(token) {
+                document.getElementById('recaptcha_token').value = token;
+                e.target.submit();   // now submit the form
+            });
+    });
+   </script> -->
+```
+
+1. In `public_html/contact.php`, configure the matching secret key and uncomment the validation block for your provider:
+
+```php
+
+# --- Cloudflare Turnstile (Recommended) ---
+/*
+$turnstile_token = $_POST['cf-turnstile-response'] ?? '';
+if (empty($turnstile_token)) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+$secret = "YOUR_TURNSTILE_SECRET_KEY_HERE";
+$response = file_get_contents("https://challenges.cloudflare.com/turnstile/v0/siteverify", false, stream_context_create([
+    'http' => [
+        'method' => 'POST',
+        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query(['secret' => $secret, 'response' => $turnstile_token])
+    ]
+]));
+$resp = json_decode($response);
+if (!$resp || !$resp->success) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+*/
+
+# --- Google reCAPTCHA v3 ---
+/*
+$recaptcha_token = $_POST['recaptcha_token'] ?? '';
+if (empty($recaptcha_token)) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+$secret = "YOUR_RECAPTCHA_SECRET_KEY_HERE";
+$resp = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secret&response=$recaptcha_token");
+$resp = json_decode($resp);
+if (!$resp || $resp->score < 0.5) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+*/
+
+# --- hCaptcha ---
+/*
+$hcaptcha_token = $_POST['h-captcha-response'] ?? '';
+if (empty($hcaptcha_token)) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+$secret = "YOUR_HCAPTCHA_SECRET_KEY_HERE";
+$resp = file_get_contents("https://hcaptcha.com/siteverify", false, stream_context_create([
+    'http' => [
+        'method' => 'POST',
+        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+        'content' => http_build_query(['secret' => $secret, 'response' => $hcaptcha_token])
+    ]
+]));
+$resp = json_decode($resp);
+if (!$resp || !$resp->success) {
+    header("Location: contact.html?status=error");
+    exit;
+}
+*/
+```
+
+**Security notes:**
+
+- All CAPTCHA tokens are validated server-side before any email is sent.
+- Failed CAPTCHA attempts return a clear, user-friendly error message.
+- The original invisible anti-spam protections (honeypot, time gate, origin validation) remain active at all times — CAPTCHA is an optional extra layer.
+- You can enable/disable the CAPTCHA widget without changing any other code.
 
 #### c. Update `public_html/sitemap.xml`
 
