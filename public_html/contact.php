@@ -152,7 +152,7 @@ if (!$resp || !$resp->success) {
 # CHANGE THIS TO YOUR EMAIL
 $to = "you@example.com";
 
-$subject = "VisDir Contact Form – " . $name;
+$subject = "VisDir Contact Form - " . $name;
 
 $body = "Name: " . $name . "\n";
 $body .= "Email: " . $email . "\n\n";
