@@ -4,14 +4,37 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Contact - VisDir</title>
+   <meta name="generator" content="visdir">
+   <meta name="version" content="@@PROJECT_VERSION@@">
+   <meta name="description"
+      content="Secure contact form with optional CAPTCHA (Cloudflare Turnstile, reCAPTCHA v3, hCaptcha) and layered anti-spam protection.">
+   <meta property="og:title" content="Contact — VisDir">
+   <meta property="og:description" content="Send us a message through our spam-resistant contact form.">
+   <meta property="og:type" content="website">
+   <meta property="og:url" content="https://yourdomain.com/contact.html">
+
+   <link rel="canonical" href="https://yourdomain.com/contact.html">
+
+   <title>Contact — VisDir</title>
+
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
       tailwind.config = {
          darkMode: 'class'
       }
    </script>
+
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+   <style>
+      .form-input {
+         transition: all 0.2s;
+      }
+
+      .form-input:focus {
+         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+      }
+   </style>
 
    <!-- ==================== CAPTCHA OPTIONS (choose ONE) ==================== -->
 
@@ -23,16 +46,6 @@
 
    <!-- Option 3: hCaptcha -->
    <!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
-
-   <style>
-      .form-input {
-         transition: all 0.2s;
-      }
-
-      .form-input:focus {
-         box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
-      }
-   </style>
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
