@@ -13,7 +13,7 @@
 #   python convert-data.py --to-json input.csv output.json --site-from old.json
 #
 # AUTHOR: Generated for the visdir project
-# VERSION: 1.0.0
+# VERSION: v@@PROJECT_VERSION@@
 # DATE: 2026-04-25
 # =============================================================================
 
