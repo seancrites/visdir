@@ -69,6 +69,7 @@ main() {
     META_DESC=$(echo "${SETTINGS}" | jq -r '.meta_description // empty')
     OG_DESC=$(echo "${SETTINGS}" | jq -r '.og_description // empty')
     CAPTCHA_TYPE=$(echo "${SETTINGS}" | jq -r '.captcha.type // "none"')
+    LAST_CHOICE=$(echo "${SETTINGS}" | jq -r '.captcha.last_choice // 4')
     TO_EMAIL=$(echo "${SETTINGS}" | jq -r '.contact.to // empty')
     FROM_EMAIL=$(echo "${SETTINGS}" | jq -r '.contact.from // empty')
     MIN_SECONDS=$(echo "${SETTINGS}" | jq -r '.contact.min_seconds // 3')
@@ -133,22 +134,25 @@ main() {
         [ -n "${input}" ] && FROM_EMAIL="${input}"
     fi
 
-    # CAPTCHA selection
-    if [ "${CAPTCHA_TYPE}" = "none" ] || [ -z "${CAPTCHA_TYPE}" ]; then
-        printf '\nCAPTCHA provider:\n'
-        printf '1) Cloudflare Turnstile (recommended)\n'
-        printf '2) Google reCAPTCHA v3\n'
-        printf '3) hCaptcha\n'
-        printf '4) None\n'
-        printf 'Choice [1-4]: '
-        read -r choice
-        case "${choice}" in
-            1) CAPTCHA_TYPE="turnstile" ;;
-            2) CAPTCHA_TYPE="recaptcha" ;;
-            3) CAPTCHA_TYPE="hcaptcha" ;;
-            *) CAPTCHA_TYPE="none" ;;
-        esac
+    # === CAPTCHA with remembered default ===
+    printf '\nCAPTCHA provider:\n'
+    printf '1) Cloudflare Turnstile (recommended)\n'
+    printf '2) Google reCAPTCHA v3\n'
+    printf '3) hCaptcha\n'
+    printf '4) None\n'
+    printf 'Choice 1-4 [%s]: ' "${LAST_CHOICE}"
+    read -r choice
+
+    if [ -z "${choice}" ]; then
+        choice="${LAST_CHOICE}"
     fi
+
+    case "${choice}" in
+        1) CAPTCHA_TYPE="turnstile" ;;
+        2) CAPTCHA_TYPE="recaptcha" ;;
+        3) CAPTCHA_TYPE="hcaptcha" ;;
+        *) CAPTCHA_TYPE="none" ;;
+    esac
 
     # Load or ask for keys
     TURNSTILE_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.turnstile.sitekey // empty')
@@ -175,7 +179,35 @@ main() {
         esac
     fi
 
-    # Save settings
+    # === Full Settings Summary + Confirmation ===
+    printf '\n=== Deployment Summary ===\n'
+    printf 'Web Root:           %s\n' "${WEB_ROOT}"
+    printf 'Scripts Folder:     %s\n' "${SCRIPTS_DIR}"
+    printf 'Site Title:         %s\n' "${SITE_TITLE}"
+    printf 'Base URL:           %s\n' "${URL}"
+    printf 'Meta Description:   %s\n' "${META_DESC}"
+    printf 'OG Description:     %s\n' "${OG_DESC}"
+    printf 'CAPTCHA Provider:   %s\n' "${CAPTCHA_TYPE}"
+    if [ "${CAPTCHA_TYPE}" != "none" ]; then
+        case "${CAPTCHA_TYPE}" in
+            turnstile)  printf '  Site Key:         %s\n' "${TURNSTILE_SITEKEY}"; printf '  Secret Key:       %s\n' "${TURNSTILE_SECRET}" ;;
+            recaptcha)  printf '  Site Key:         %s\n' "${RECAPTCHA_SITEKEY}"; printf '  Secret Key:       %s\n' "${RECAPTCHA_SECRET}" ;;
+            hcaptcha)   printf '  Site Key:         %s\n' "${HCAPTCHA_SITEKEY}"; printf '  Secret Key:       %s\n' "${HCAPTCHA_SECRET}" ;;
+        esac
+    fi
+    printf 'Contact To:         %s\n' "${TO_EMAIL}"
+    printf 'Contact From:       %s\n' "${FROM_EMAIL}"
+    printf 'Min Submit Seconds: %s\n' "${MIN_SECONDS}"
+    printf '============================\n'
+
+    printf 'Proceed with deployment? [y/N]: '
+    read -r confirm
+    if [[ ! "${confirm}" =~ ^[Yy]$ ]]; then
+        log "Deployment cancelled by user."
+        exit 0
+    fi
+
+    # Save settings (including last choice)
     SETTINGS=$(jq -n \
         --arg web_root "${WEB_ROOT}" \
         --arg scripts_dir "${SCRIPTS_DIR}" \
@@ -184,6 +216,7 @@ main() {
         --arg meta "${META_DESC}" \
         --arg og "${OG_DESC}" \
         --arg captcha_type "${CAPTCHA_TYPE}" \
+        --argjson last_choice "${choice}" \
         --arg turnstile_sitekey "${TURNSTILE_SITEKEY}" \
         --arg turnstile_secret "${TURNSTILE_SECRET}" \
         --arg recaptcha_sitekey "${RECAPTCHA_SITEKEY}" \
@@ -193,7 +226,7 @@ main() {
         --arg to "${TO_EMAIL}" \
         --arg from "${FROM_EMAIL}" \
         --argjson min_seconds "${MIN_SECONDS}" \
-        '{web_root: $web_root, scripts_dir: $scripts_dir, site_title: $site_title, url: $url, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, turnstile: {sitekey: $turnstile_sitekey, secret: $turnstile_secret}, recaptcha: {sitekey: $recaptcha_sitekey, secret: $recaptcha_secret}, hcaptcha: {sitekey: $hcaptcha_sitekey, secret: $hcaptcha_secret}}, contact: {to: $to, from: $from, min_seconds: $min_seconds}, version: "'${VISDIR_VERSION}'"}')
+        '{web_root: $web_root, scripts_dir: $scripts_dir, site_title: $site_title, url: $url, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, last_choice: $last_choice, turnstile: {sitekey: $turnstile_sitekey, secret: $turnstile_secret}, recaptcha: {sitekey: $recaptcha_sitekey, secret: $recaptcha_secret}, hcaptcha: {sitekey: $hcaptcha_sitekey, secret: $hcaptcha_secret}}, contact: {to: $to, from: $from, min_seconds: $min_seconds}, version: "'${VISDIR_VERSION}'"}')
 
     save_settings "${SETTINGS}"
     log "Settings saved to ${SETTINGS_FILE}"
