@@ -66,9 +66,11 @@ main() {
     SETTINGS=$(load_settings)
     VISDIR_VERSION=$(get_visdir_version)
 
-    # Load existing values
+    # Load existing values or empty
+    WEB_ROOT=$(echo "${SETTINGS}" | jq -r '.web_root // empty')
+    SCRIPTS_DIR=$(echo "${SETTINGS}" | jq -r '.scripts_dir // empty')
+    SITE_TITLE=$(echo "${SETTINGS}" | jq -r '.site_title // "VisDir"')
     URL=$(echo "${SETTINGS}" | jq -r '.url // empty')
-    DEST=$(echo "${SETTINGS}" | jq -r '.destination // empty')
     META_DESC=$(echo "${SETTINGS}" | jq -r '.meta_description // empty')
     OG_DESC=$(echo "${SETTINGS}" | jq -r '.og_description // empty')
     CAPTCHA_TYPE=$(echo "${SETTINGS}" | jq -r '.captcha.type // "none"')
@@ -78,18 +80,65 @@ main() {
     FROM_EMAIL=$(echo "${SETTINGS}" | jq -r '.contact.from // empty')
     MIN_SECONDS=$(echo "${SETTINGS}" | jq -r '.contact.min_seconds // 3')
 
-    # Ask for missing values
-    [ -z "${URL}" ] && { printf 'Site URL (e.g. https://yourdomain.com): '; read -r URL; }
-    [ -z "${DEST}" ] && { printf 'Destination folder (full path): '; read -r DEST; }
-    [ -z "${META_DESC}" ] && { printf '\nMeta description (search results):\n'; read -r META_DESC; }
-    [ -z "${OG_DESC}" ] && { printf '\nOpen Graph description (social shares):\n'; read -r OG_DESC; }
-    [ -z "${TO_EMAIL}" ] && { printf '\nContact form "To" email: '; read -r TO_EMAIL; }
+    # === Interactive prompts (show saved value in [brackets] on repeat runs) ===
+    if [ -z "${WEB_ROOT}" ]; then
+        printf 'Web root folder (where index.html should live): '
+        read -r WEB_ROOT
+    else
+        printf 'Web root folder [%s]: ' "${WEB_ROOT}"
+        read -r input
+        [ -n "${input}" ] && WEB_ROOT="${input}"
+    fi
+
+    # Default scripts_dir = parent of web_root
+    DEFAULT_SCRIPTS="$(dirname "${WEB_ROOT}")/scripts"
+    if [ -z "${SCRIPTS_DIR}" ]; then
+        SCRIPTS_DIR="${DEFAULT_SCRIPTS}"
+        printf 'Scripts folder [%s]: ' "${SCRIPTS_DIR}"
+        read -r input
+        [ -n "${input}" ] && SCRIPTS_DIR="${input}"
+    else
+        printf 'Scripts folder [%s]: ' "${SCRIPTS_DIR}"
+        read -r input
+        [ -n "${input}" ] && SCRIPTS_DIR="${input}"
+    fi
+
+    if [ -z "${SITE_TITLE}" ] || [ "${SITE_TITLE}" = "VisDir" ]; then
+        printf 'Site title [%s]: ' "${SITE_TITLE}"
+        read -r input
+        [ -n "${input}" ] && SITE_TITLE="${input}"
+    fi
+
+    if [ -z "${URL}" ] || [[ "${URL}" != http* ]]; then
+        while true; do
+            printf 'Base URL (must start with http:// or https://): '
+            read -r URL
+            if [[ "${URL}" == http* ]]; then
+                break
+            else
+                printf 'ERROR: URL must include http:// or https://\n'
+            fi
+        done
+    else
+        printf 'Base URL [%s]: ' "${URL}"
+        read -r input
+        [ -n "${input}" ] && URL="${input}"
+    fi
+
+    [ -z "${META_DESC}" ] && { printf '\nMeta description (search results):\n'; read -r META_DESC; } || { printf 'Meta description [%s]: ' "${META_DESC}"; read -r input; [ -n "${input}" ] && META_DESC="${input}"; }
+    [ -z "${OG_DESC}" ] && { printf '\nOpen Graph description (social shares):\n'; read -r OG_DESC; } || { printf 'Open Graph description [%s]: ' "${OG_DESC}"; read -r input; [ -n "${input}" ] && OG_DESC="${input}"; }
+    [ -z "${TO_EMAIL}" ] && { printf '\nContact form "To" email: '; read -r TO_EMAIL; } || { printf 'Contact form "To" email [%s]: ' "${TO_EMAIL}"; read -r input; [ -n "${input}" ] && TO_EMAIL="${input}"; }
 
     if [ -z "${FROM_EMAIL}" ]; then
-        DOMAIN=$(echo "${URL}" | sed -E 's|https?://([^/]+).*|\1|')
-        printf 'Contact form "From" address (recommended: no-reply@%s): ' "${DOMAIN}"
-        read -r FROM_EMAIL
-        [ -z "${FROM_EMAIL}" ] && FROM_EMAIL="no-reply@${DOMAIN}"
+        DOMAIN=$(echo "${WEB_ROOT}" | sed -E 's|https?://||; s|/.*||')
+        FROM_EMAIL="no-reply@${DOMAIN}"
+        printf 'Contact form "From" address [%s]: ' "${FROM_EMAIL}"
+        read -r input
+        [ -n "${input}" ] && FROM_EMAIL="${input}"
+    else
+        printf 'Contact form "From" address [%s]: ' "${FROM_EMAIL}"
+        read -r input
+        [ -n "${input}" ] && FROM_EMAIL="${input}"
     fi
 
     # CAPTCHA selection
@@ -118,6 +167,9 @@ main() {
 
     # Save settings
     SETTINGS=$(jq -n \
+        --arg web_root "${WEB_ROOT}" \
+        --arg scripts_dir "${SCRIPTS_DIR}" \
+        --arg site_title "${SITE_TITLE}" \
         --arg url "${URL}" \
         --arg dest "${DEST}" \
         --arg meta "${META_DESC}" \
