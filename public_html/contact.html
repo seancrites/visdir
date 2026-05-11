@@ -8,14 +8,14 @@
    <meta name="version" content="1.5.0">
    <meta name="description"
       content="Secure contact form with optional CAPTCHA (Cloudflare Turnstile, reCAPTCHA v3, hCaptcha) and layered anti-spam protection.">
-   <meta property="og:title" content="Contact — VisDir">
+   <meta property="og:title" content="Contact — Visual Directory">
    <meta property="og:description" content="Send us a message through our spam-resistant contact form.">
    <meta property="og:type" content="website">
    <meta property="og:url" content="https://yourdomain.com/contact.html">
 
    <link rel="canonical" href="https://yourdomain.com/contact.html">
 
-   <title>Contact — VisDir</title>
+   <title>Contact — Visual Directory</title>
 
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
@@ -173,7 +173,7 @@
 
             document.getElementById('nav-brand').innerHTML = `
                     ${site.logo_svg || ''}
-                    <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                    <h1 class="text-2xl font-bold">${site.name || 'Visual Directory'}</h1>
                 `;
 
             document.getElementById('motto-text').textContent = site.motto || '';
@@ -182,7 +182,7 @@
             const showContact = site.show_contact === true;
             const supportUrl = site.support_url;
             const supportLabel = site.support_label;
-            const visdirLink = '<a href="https://github.com/seancrites/visdir" target="_blank" class="hover:text-amber-600">VisDir</a>';
+            const visdirLink = '<a href="https://github.com/seancrites/visdir" target="_blank" class="hover:text-amber-600">Visual Directory</a>';
 
             const parts = [];
             if (maintainer) {

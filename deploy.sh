@@ -270,7 +270,7 @@ main() {
     sed -i "s|https://yourdomain.com|${URL}|g" "${WEB_ROOT}/"*.html "${WEB_ROOT}/sitemap.xml" "${WEB_ROOT}/robots.txt"
 
     # Site title
-    sed -i "s|VisDir|${SITE_TITLE}|g" "${WEB_ROOT}/"*.html
+    sed -i "s|Visual Directory|${SITE_TITLE}|g" "${WEB_ROOT}/"*.html
 
     # Meta tags
     sed -i "s|<meta name=\"description\" content=\"[^\"]*\">|<meta name=\"description\" content=\"${META_DESC}\">|" "${WEB_ROOT}/index.html"

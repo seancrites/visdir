@@ -8,14 +8,14 @@
    <meta name="version" content="1.5.0">
    <meta name="description"
       content="A clean, modern visual directory template with live thumbnails and interactive map.">
-   <meta property="og:title" content="VisDir">
+   <meta property="og:title" content="Visual Directory">
    <meta property="og:description" content="Build beautiful visual directories with one JSON file.">
    <meta property="og:type" content="website">
    <meta property="og:url" content="https://yourdomain.com">
 
    <link rel="canonical" href="https://yourdomain.com">
 
-   <title>VisDir</title>
+   <title>Visual Directory</title>
 
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
@@ -113,10 +113,10 @@
 
                document.getElementById('nav-brand').innerHTML = `
                         ${site.logo_svg || ''}
-                        <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                        <h1 class="text-2xl font-bold">${site.name || 'Visual Directory'}</h1>
                     `;
 
-               document.getElementById('site-name').textContent = site.name || 'VisDir';
+               document.getElementById('site-name').textContent = site.name || 'Visual Directory';
                document.getElementById('site-slogan').textContent = site.slogan || '';
                document.getElementById('motto-text').textContent = site.motto || '';
 
@@ -124,7 +124,7 @@
                const showContact = site.show_contact === true;
                const supportUrl = site.support_url;
                const supportLabel = site.support_label;
-               const visdirLink = '<a href="https://github.com/seancrites/visdir" target="_blank" class="hover:text-amber-600">VisDir</a>';
+               const visdirLink = '<a href="https://github.com/seancrites/visdir" target="_blank" class="hover:text-amber-600">Visual Directory</a>';
 
                const parts = [];
                if (maintainer) {
