@@ -87,9 +87,9 @@ main() {
         [ -n "${input}" ] && SCRIPTS_DIR="${input}"
     fi
 
-   printf 'Site title [%s]: ' "${SITE_TITLE}"
-   read -r input
-   [ -n "${input}" ] && SITE_TITLE="${input}"
+    printf 'Site title [%s]: ' "${SITE_TITLE}"
+    read -r input
+    [ -n "${input}" ] && SITE_TITLE="${input}"
 
     if [ -z "${URL}" ] || [[ "${URL}" != http* ]]; then
         while true; do
@@ -123,15 +123,26 @@ main() {
         [ -n "${input}" ] && FROM_EMAIL="${input}"
     fi
 
-    # === NEW: Minimum Submit Seconds ===
+    # === Minimum Submit Seconds ===
     printf 'Minimum submit seconds [%s]: ' "${MIN_SECONDS}"
     read -r input
     [ -n "${input}" ] && MIN_SECONDS="${input}"
 
-    # === NEW: Enforce Referer Check ===
-    printf 'Enforce Referer Check? [%s]: ' "${ENFORCE_REFERER}"
-    read -r input
-    [ -n "${input}" ] && ENFORCE_REFERER="${input}"
+    # === Enforce Referer Check (strict true/false only) ===
+    while true; do
+        printf 'Enforce Referer Check? [true/false] [%s]: ' "${ENFORCE_REFERER}"
+        read -r input
+        if [ -z "${input}" ]; then
+            break
+        fi
+        input_lower=$(echo "$input" | tr '[:upper:]' '[:lower:]')
+        if [[ "$input_lower" == "true" || "$input_lower" == "false" ]]; then
+            ENFORCE_REFERER="$input_lower"
+            break
+        else
+            printf 'Please enter true or false only.\n'
+        fi
+    done
 
     # === CAPTCHA with remembered default ===
     printf '\nCAPTCHA provider:\n'
@@ -184,6 +195,10 @@ main() {
     printf 'Base URL: %s\n' "${URL}"
     printf 'Meta Description: %s\n' "${META_DESC}"
     printf 'OG Description: %s\n' "${OG_DESC}"
+    printf 'Contact To: %s\n' "${TO_EMAIL}"
+    printf 'Contact From: %s\n' "${FROM_EMAIL}"
+    printf 'Min Submit Seconds: %s\n' "${MIN_SECONDS}"
+    printf 'Enforce Referer Check: %s\n' "${ENFORCE_REFERER}"
     printf 'CAPTCHA Provider: %s\n' "${CAPTCHA_TYPE}"
     if [ "${CAPTCHA_TYPE}" != "none" ]; then
         case "${CAPTCHA_TYPE}" in
@@ -192,10 +207,6 @@ main() {
             hcaptcha) printf ' Site Key: %s\n' "${HCAPTCHA_SITEKEY}"; printf ' Secret Key: %s\n' "${HCAPTCHA_SECRET}" ;;
         esac
     fi
-    printf 'Contact To: %s\n' "${TO_EMAIL}"
-    printf 'Contact From: %s\n' "${FROM_EMAIL}"
-    printf 'Min Submit Seconds: %s\n' "${MIN_SECONDS}"
-    printf 'Enforce Referer Check: %s\n' "${ENFORCE_REFERER}"
     printf '============================\n'
 
     printf 'Proceed with deployment? [y/N]: '
@@ -205,7 +216,7 @@ main() {
         exit 0
     fi
 
-    # Save settings (including new fields)
+    # Save settings
     SETTINGS=$(jq -n \
         --arg web_root "${WEB_ROOT}" \
         --arg scripts_dir "${SCRIPTS_DIR}" \
