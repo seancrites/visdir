@@ -35,7 +35,6 @@ log() { printf '[deploy] %s\n' "$1"; }
 
 error() { printf 'ERROR: %s\n' "$1" >&2; }
 
-# Load current VisDir version from VERSION file
 get_visdir_version() {
     if [ -f "${VERSION_FILE}" ]; then
         tr -d '[:space:]' < "${VERSION_FILE}"
@@ -44,7 +43,6 @@ get_visdir_version() {
     fi
 }
 
-# Load or create settings file
 load_settings() {
     if [ -f "${PROJECT_ROOT}/${SETTINGS_FILE}" ]; then
         cat "${PROJECT_ROOT}/${SETTINGS_FILE}"
@@ -66,7 +64,7 @@ main() {
     SETTINGS=$(load_settings)
     VISDIR_VERSION=$(get_visdir_version)
 
-    # Load existing values or empty
+    # Load existing values
     WEB_ROOT=$(echo "${SETTINGS}" | jq -r '.web_root // empty')
     SCRIPTS_DIR=$(echo "${SETTINGS}" | jq -r '.scripts_dir // empty')
     SITE_TITLE=$(echo "${SETTINGS}" | jq -r '.site_title // "VisDir"')
@@ -80,7 +78,7 @@ main() {
     FROM_EMAIL=$(echo "${SETTINGS}" | jq -r '.contact.from // empty')
     MIN_SECONDS=$(echo "${SETTINGS}" | jq -r '.contact.min_seconds // 3')
 
-    # === Interactive prompts (show saved value in [brackets] on repeat runs) ===
+    # === Prompts with [current value] in brackets ===
     if [ -z "${WEB_ROOT}" ]; then
         printf 'Web root folder (where index.html should live): '
         read -r WEB_ROOT
@@ -90,7 +88,6 @@ main() {
         [ -n "${input}" ] && WEB_ROOT="${input}"
     fi
 
-    # Default scripts_dir = parent of web_root
     DEFAULT_SCRIPTS="$(dirname "${WEB_ROOT}")/scripts"
     if [ -z "${SCRIPTS_DIR}" ]; then
         SCRIPTS_DIR="${DEFAULT_SCRIPTS}"
@@ -130,7 +127,7 @@ main() {
     [ -z "${TO_EMAIL}" ] && { printf '\nContact form "To" email: '; read -r TO_EMAIL; } || { printf 'Contact form "To" email [%s]: ' "${TO_EMAIL}"; read -r input; [ -n "${input}" ] && TO_EMAIL="${input}"; }
 
     if [ -z "${FROM_EMAIL}" ]; then
-        DOMAIN=$(echo "${WEB_ROOT}" | sed -E 's|https?://||; s|/.*||')
+        DOMAIN=$(echo "${URL}" | sed -E 's|https?://([^/]+).*|\1|')
         FROM_EMAIL="no-reply@${DOMAIN}"
         printf 'Contact form "From" address [%s]: ' "${FROM_EMAIL}"
         read -r input
@@ -141,13 +138,13 @@ main() {
         [ -n "${input}" ] && FROM_EMAIL="${input}"
     fi
 
-    # CAPTCHA selection
+    # CAPTCHA
     if [ "${CAPTCHA_TYPE}" = "none" ] || [ -z "${CAPTCHA_TYPE}" ]; then
         printf '\nCAPTCHA provider:\n'
         printf '1) Cloudflare Turnstile (recommended)\n'
         printf '2) Google reCAPTCHA v3\n'
         printf '3) hCaptcha\n'
-        printf '4) None (invisible protections only)\n'
+        printf '4) None\n'
         printf 'Choice [1-4]: '
         read -r choice
         case "${choice}" in
@@ -171,7 +168,6 @@ main() {
         --arg scripts_dir "${SCRIPTS_DIR}" \
         --arg site_title "${SITE_TITLE}" \
         --arg url "${URL}" \
-        --arg dest "${DEST}" \
         --arg meta "${META_DESC}" \
         --arg og "${OG_DESC}" \
         --arg captcha_type "${CAPTCHA_TYPE}" \
@@ -180,86 +176,97 @@ main() {
         --arg to "${TO_EMAIL}" \
         --arg from "${FROM_EMAIL}" \
         --argjson min_seconds "${MIN_SECONDS}" \
-        '{url: $url, destination: $dest, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, sitekey: $sitekey, secret: $secret}, contact: {to: $to, from: $from, min_seconds: $min_seconds}, version: "'${VISDIR_VERSION}'"}')
+        '{web_root: $web_root, scripts_dir: $scripts_dir, site_title: $site_title, url: $url, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, sitekey: $sitekey, secret: $secret}, contact: {to: $to, from: $from, min_seconds: $min_seconds}, version: "'${VISDIR_VERSION}'"}')
 
     save_settings "${SETTINGS}"
     log "Settings saved to ${SETTINGS_FILE}"
 
-    # Permission checks
-    [ ! -d "${DEST}" ] && mkdir -p "${DEST}"
-    [ ! -w "${DEST}" ] && { error "Destination not writable: ${DEST}"; exit 1; }
+    # === Permission checks ===
+    [ ! -d "${WEB_ROOT}" ] && mkdir -p "${WEB_ROOT}"
+    [ ! -w "${WEB_ROOT}" ] && { error "Web root not writable: ${WEB_ROOT}"; exit 1; }
 
     [ ! -d "${PROJECT_ROOT}/${ARCHIVE_DIR}" ] && mkdir -p "${PROJECT_ROOT}/${ARCHIVE_DIR}"
     [ ! -w "${PROJECT_ROOT}/${ARCHIVE_DIR}" ] && { error "Archive directory not writable"; exit 1; }
 
-    # Backup if destination has content
-    if [ -d "${DEST}/public_html" ] || [ -d "${DEST}/scripts" ]; then
+    # === Backup if destination has content ===
+    if [ -f "${WEB_ROOT}/index.html" ] || [ -d "${WEB_ROOT}/thumbnails" ]; then
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         BACKUP_DIR="${PROJECT_ROOT}/${ARCHIVE_DIR}/backup-${TIMESTAMP}"
         mkdir -p "${BACKUP_DIR}"
         log "Creating backup in ${BACKUP_DIR}..."
-        cp -a "${DEST}/public_html" "${BACKUP_DIR}/" 2>/dev/null || true
-        cp -a "${DEST}/scripts" "${BACKUP_DIR}/" 2>/dev/null || true
+        cp -a "${WEB_ROOT}" "${BACKUP_DIR}/" 2>/dev/null || true
         log "Backup completed"
     fi
 
-    # Copy fresh files
-    log "Copying fresh files to ${DEST}..."
-    cp -a public_html "${DEST}/"
-    cp -a scripts "${DEST}/"
-    mkdir -p "${DEST}/public_html/thumbnails"
+    # === Copy files ===
+    log "Copying fresh files to web root..."
+    cp -a public_html/* "${WEB_ROOT}/"
+    mkdir -p "${WEB_ROOT}/thumbnails"
 
-    if [ ! -f "${DEST}/public_html/data.json" ]; then
-        cp public_html/data.json.example "${DEST}/public_html/data.json"
-        log "Created public_html/data.json from example. Please edit it with your real data."
+    log "Copying scripts to ${SCRIPTS_DIR}..."
+    cp -a scripts "${SCRIPTS_DIR}/"
+
+    # data.json.example
+    if [ ! -f "${WEB_ROOT}/data.json" ]; then
+        cp public_html/data.json.example "${WEB_ROOT}/data.json"
+        log "Created data.json from example. Please edit it with your real directory data."
     fi
 
-    # Apply settings
+    # === Apply settings ===
     log "Applying your custom settings..."
 
     # URL
-    sed -i "s|https://yourdomain.com|${URL}|g" "${DEST}/public_html/"*.html "${DEST}/public_html/sitemap.xml" "${DEST}/public_html/robots.txt"
+    sed -i "s|https://yourdomain.com|${URL}|g" "${WEB_ROOT}/"*.html "${WEB_ROOT}/sitemap.xml" "${WEB_ROOT}/robots.txt"
+
+    # Site title replacements
+    sed -i "s|VisDir|${SITE_TITLE}|g" "${WEB_ROOT}/"*.html
 
     # Meta tags
-    sed -i "s|<meta name=\"description\" content=\"[^\"]*\">|<meta name=\"description\" content=\"${META_DESC}\">|" "${DEST}/public_html/index.html"
-    sed -i "s|<meta property=\"og:description\" content=\"[^\"]*\">|<meta property=\"og:description\" content=\"${OG_DESC}\">|" "${DEST}/public_html/index.html"
+    sed -i "s|<meta name=\"description\" content=\"[^\"]*\">|<meta name=\"description\" content=\"${META_DESC}\">|" "${WEB_ROOT}/index.html"
+    sed -i "s|<meta property=\"og:description\" content=\"[^\"]*\">|<meta property=\"og:description\" content=\"${OG_DESC}\">|" "${WEB_ROOT}/index.html"
 
     # Contact.php
-    sed -i "s|\$to = .*;|\$to = \"${TO_EMAIL}\";|" "${DEST}/public_html/contact.php"
-    sed -i "s|no-reply@yourdomain.com|${FROM_EMAIL}|" "${DEST}/public_html/contact.php"
-    sed -i "s|\$MINIMUM_SUBMIT_SECONDS = .*;|\$MINIMUM_SUBMIT_SECONDS = ${MIN_SECONDS};|" "${DEST}/public_html/contact.php"
+    sed -i "s|\$to = .*;|\$to = \"${TO_EMAIL}\";|" "${WEB_ROOT}/contact.php"
+    sed -i "s|no-reply@yourdomain.com|${FROM_EMAIL}|" "${WEB_ROOT}/contact.php"
+    sed -i "s|\$MINIMUM_SUBMIT_SECONDS = .*;|\$MINIMUM_SUBMIT_SECONDS = ${MIN_SECONDS};|" "${WEB_ROOT}/contact.php"
+
+    # Update update-thumbnails.py if needed
+    if [ "${SCRIPTS_DIR}" != "$(dirname "${WEB_ROOT}")/scripts" ]; then
+        RELATIVE_PATH=$(realpath --relative-to="${SCRIPTS_DIR}" "${WEB_ROOT}")
+        sed -i "s|PROJECT_DIR = Path(\"../public_html\").resolve()|PROJECT_DIR = Path(\"${RELATIVE_PATH}\").resolve()|" "${SCRIPTS_DIR}/update-thumbnails.py"
+    fi
 
     # CAPTCHA handling
     log "Configuring CAPTCHA..."
     if [ "${CAPTCHA_TYPE}" = "turnstile" ]; then
-        sed -i '/Cloudflare Turnstile (Recommended)/,/<\/div>/s/<!-- //' "${DEST}/public_html/contact.html"
-        sed -i '/Cloudflare Turnstile (Recommended)/,/<\/div>/s| -->||' "${DEST}/public_html/contact.html"
-        sed -i '/--- Cloudflare Turnstile (Recommended) ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${DEST}/public_html/contact.php"
+        sed -i '/Cloudflare Turnstile (Recommended)/,/<\/div>/s/<!-- //' "${WEB_ROOT}/contact.html"
+        sed -i '/Cloudflare Turnstile (Recommended)/,/<\/div>/s| -->||' "${WEB_ROOT}/contact.html"
+        sed -i '/--- Cloudflare Turnstile (Recommended) ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${WEB_ROOT}/contact.php"
     elif [ "${CAPTCHA_TYPE}" = "recaptcha" ]; then
-        sed -i '/Google reCAPTCHA v3/,/<\/script>/s/<!-- //' "${DEST}/public_html/contact.html"
-        sed -i '/Google reCAPTCHA v3/,/<\/script>/s| -->||' "${DEST}/public_html/contact.html"
-        sed -i '/--- Google reCAPTCHA v3 ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${DEST}/public_html/contact.php"
+        sed -i '/Google reCAPTCHA v3/,/<\/script>/s/<!-- //' "${WEB_ROOT}/contact.html"
+        sed -i '/Google reCAPTCHA v3/,/<\/script>/s| -->||' "${WEB_ROOT}/contact.html"
+        sed -i '/--- Google reCAPTCHA v3 ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${WEB_ROOT}/contact.php"
     elif [ "${CAPTCHA_TYPE}" = "hcaptcha" ]; then
-        sed -i '/hCaptcha/,/<\/div>/s/<!-- //' "${DEST}/public_html/contact.html"
-        sed -i '/hCaptcha/,/<\/div>/s| -->||' "${DEST}/public_html/contact.html"
-        sed -i '/--- hCaptcha ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${DEST}/public_html/contact.php"
+        sed -i '/hCaptcha/,/<\/div>/s/<!-- //' "${WEB_ROOT}/contact.html"
+        sed -i '/hCaptcha/,/<\/div>/s| -->||' "${WEB_ROOT}/contact.html"
+        sed -i '/--- hCaptcha ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${WEB_ROOT}/contact.php"
     else
-        # None - ensure all are commented
-        sed -i '/Cloudflare Turnstile/,/<\/div>/s|^|<!-- |; /<\/div>/s|$| -->|' "${DEST}/public_html/contact.html"
-        sed -i '/Google reCAPTCHA v3/,/<\/script>/s|^|<!-- |; /<\/script>/s|$| -->|' "${DEST}/public_html/contact.html"
-        sed -i '/hCaptcha/,/<\/div>/s|^|<!-- |; /<\/div>/s|$| -->|' "${DEST}/public_html/contact.html"
-        sed -i '/--- Cloudflare Turnstile/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${DEST}/public_html/contact.php"
-        sed -i '/--- Google reCAPTCHA v3 ---/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${DEST}/public_html/contact.php"
-        sed -i '/--- hCaptcha ---/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${DEST}/public_html/contact.php"
+        # None - comment everything
+        sed -i '/Cloudflare Turnstile/,/<\/div>/s|^|<!-- |; /<\/div>/s|$| -->|' "${WEB_ROOT}/contact.html"
+        sed -i '/Google reCAPTCHA v3/,/<\/script>/s|^|<!-- |; /<\/script>/s|$| -->|' "${WEB_ROOT}/contact.html"
+        sed -i '/hCaptcha/,/<\/div>/s|^|<!-- |; /<\/div>/s|$| -->|' "${WEB_ROOT}/contact.html"
+        sed -i '/--- Cloudflare Turnstile/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${WEB_ROOT}/contact.php"
+        sed -i '/--- Google reCAPTCHA v3 ---/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${WEB_ROOT}/contact.php"
+        sed -i '/--- hCaptcha ---/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${WEB_ROOT}/contact.php"
     fi
 
     log "Deployment completed successfully!"
 
     printf '\n=== Next Steps ===\n'
-    printf '1. Edit %s/public_html/data.json with your real directory data\n' "${DEST}"
-    printf '2. Run thumbnail updater:\n   cd %s && ./scripts/update-thumbnails.sh\n' "${DEST}"
+    printf '1. Edit %s/data.json with your real directory data\n' "${WEB_ROOT}"
+    printf '2. Run thumbnail updater:\n   cd %s && ./update-thumbnails.sh\n' "${SCRIPTS_DIR}"
     printf '3. Add to cron (daily at 3 AM):\n'
-    printf '   0 3 * * * %s/scripts/update-thumbnails.sh >/dev/null 2>&1\n\n' "${DEST}"
+    printf '   0 3 * * * %s/update-thumbnails.sh >/dev/null 2>&1\n\n' "${SCRIPTS_DIR}"
     printf 'For issues or discussions: https://github.com/seancrites/visdir\n'
 
     exit 0
