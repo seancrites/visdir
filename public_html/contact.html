@@ -39,13 +39,19 @@
    <!-- ==================== CAPTCHA OPTIONS (choose ONE) ==================== -->
 
    <!-- Option 1: Cloudflare Turnstile (Recommended - privacy friendly) -->
-   <!-- <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> -->
+   <!-- CLOUDFLARE-TURNSTILE-BEGIN
+   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+   CLOUDFLARE-TURNSTILE-END -->
 
    <!-- Option 2: Google reCAPTCHA v3 (Invisible) -->
-   <!-- <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY_HERE"></script> -->
+   <!-- GOOGLE-RECAPTCHA-V3-BEGIN
+   <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY_HERE"></script>
+   GOOGLE-RECAPTCHA-V3-END -->
 
    <!-- Option 3: hCaptcha -->
-   <!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
+   <!-- HCAPTCHA-BEGIN
+   <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+   HCAPTCHA-END -->
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
@@ -104,17 +110,23 @@
          <!-- ==================== CAPTCHA WIDGETS ==================== -->
 
          <!-- Cloudflare Turnstile (Recommended) -->
-         <!-- <div class="flex justify-center">
-                <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
-            </div> -->
+         <!-- CLOUDFLARE-TURNSTILE-BEGIN
+         <div class="flex justify-center">
+            <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
+         </div>
+         CLOUDFLARE-TURNSTILE-END -->
 
          <!-- Google reCAPTCHA v3 (Invisible) -->
-         <!-- <input type="hidden" id="recaptcha_token" name="recaptcha_token"> -->
+         <!-- GOOGLE-RECAPTCHA-V3-BEGIN
+         <input type="hidden" id="recaptcha_token" name="recaptcha_token">
+         GOOGLE-RECAPTCHA-V3-END -->
 
          <!-- hCaptcha -->
-         <!-- <div class="flex justify-center">
-                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
-            </div> -->
+         <!-- HCAPTCHA-BEGIN
+         <div class="flex justify-center">
+            <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
+         </div>
+         HCAPTCHA-END -->
 
          <button type="submit"
             class="w-full bg-slate-900 hover:bg-amber-600 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-amber-600 text-white py-5 rounded-2xl font-semibold text-lg transition">
@@ -213,7 +225,8 @@
    </script>
 
    // Uncomment the block below when using Google reCAPTCHA v3 and add your site key
-   <!-- <script>
+   <!-- GOOGLE-RECAPTCHA-V3-BEGIN
+   <script>
     document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
         grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY_HERE', {action: 'submit'})
@@ -222,7 +235,8 @@
                 e.target.submit();   // now submit the form
             });
     });
-   </script> -->
+   </script>
+   GOOGLE-RECAPTCHA-V3-END -->
 
 </body>
 

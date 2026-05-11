@@ -86,29 +86,29 @@ if (empty($name) || empty($email) || empty($message) || !filter_var($email, FILT
 // ==========================================================================
 
 // --- Cloudflare Turnstile (Recommended) ---
-/*
+/* CLOUDFLARE-TURNSTILE-BEGIN
 $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
 if (empty($turnstile_token)) {
-    header('Location: contact.html?status=error');
-    exit;
+   header('Location: contact.html?status=error');
+   exit;
 }
 $secret   = 'YOUR_TURNSTILE_SECRET_KEY_HERE';
 $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, stream_context_create([
-    'http' => [
-        'method'  => 'POST',
-        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-        'content' => http_build_query(['secret' => $secret, 'response' => $turnstile_token])
-    ]
+   'http' => [
+      'method'  => 'POST',
+      'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+      'content' => http_build_query(['secret' => $secret, 'response' => $turnstile_token])
+   ]
 ]));
 $resp = json_decode($response);
 if (!$resp || !$resp->success) {
-    header('Location: contact.html?status=error');
-    exit;
+   header('Location: contact.html?status=error');
+   exit;
 }
-*/
+CLOUDFLARE-TURNSTILE-END */
 
 // --- Google reCAPTCHA v3 ---
-/*
+/* GOOGLE-RECAPTCHA-V3-BEGIN
 $recaptcha_token = $_POST['recaptcha_token'] ?? '';
 if (empty($recaptcha_token)) {
     header('Location: contact.html?status=error');
@@ -121,10 +121,10 @@ if (!$resp || $resp->score < 0.5) {
     header('Location: contact.html?status=error');
     exit;
 }
-*/
+GOOGLE-RECAPTCHA-V3-END */
 
 // --- hCaptcha ---
-/*
+/* HCAPTCHA-BEGIN
 $hcaptcha_token = $_POST['h-captcha-response'] ?? '';
 if (empty($hcaptcha_token)) {
     header('Location: contact.html?status=error');
@@ -143,7 +143,7 @@ if (!$resp || !$resp->success) {
     header('Location: contact.html?status=error');
     exit;
 }
-*/
+HCAPTCHA-END */
 
 // ==========================================================================
 // EMAIL HANDLING
