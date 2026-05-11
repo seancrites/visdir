@@ -8,10 +8,7 @@
 # AUTHOR: Sean Crites
 # VERSION: 1.0.0
 # DATE: 2026-05-09
-# BASHISMS: Yes (JSON handling, interactive flow)
 # DEPENDENCIES: bash, sed, jq (recommended), git, mkdir, cp, chmod
-#
-# USAGE: ./deploy.sh
 # =============================================================================
 
 set -euo pipefail
@@ -72,8 +69,6 @@ main() {
     META_DESC=$(echo "${SETTINGS}" | jq -r '.meta_description // empty')
     OG_DESC=$(echo "${SETTINGS}" | jq -r '.og_description // empty')
     CAPTCHA_TYPE=$(echo "${SETTINGS}" | jq -r '.captcha.type // "none"')
-    CAPTCHA_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.sitekey // empty')
-    CAPTCHA_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.secret // empty')
     TO_EMAIL=$(echo "${SETTINGS}" | jq -r '.contact.to // empty')
     FROM_EMAIL=$(echo "${SETTINGS}" | jq -r '.contact.from // empty')
     MIN_SECONDS=$(echo "${SETTINGS}" | jq -r '.contact.min_seconds // 3')
@@ -101,10 +96,6 @@ main() {
     fi
 
     if [ -z "${SITE_TITLE}" ] || [ "${SITE_TITLE}" = "VisDir" ]; then
-        printf 'Site title [%s]: ' "${SITE_TITLE}"
-        read -r input
-        [ -n "${input}" ] && SITE_TITLE="${input}"
-    else
         printf 'Site title [%s]: ' "${SITE_TITLE}"
         read -r input
         [ -n "${input}" ] && SITE_TITLE="${input}"
@@ -142,7 +133,7 @@ main() {
         [ -n "${input}" ] && FROM_EMAIL="${input}"
     fi
 
-    # CAPTCHA
+    # CAPTCHA selection
     if [ "${CAPTCHA_TYPE}" = "none" ] || [ -z "${CAPTCHA_TYPE}" ]; then
         printf '\nCAPTCHA provider:\n'
         printf '1) Cloudflare Turnstile (recommended)\n'
@@ -159,11 +150,29 @@ main() {
         esac
     fi
 
-    if [ "${CAPTCHA_TYPE}" != "none" ] && [ -z "${CAPTCHA_SITEKEY}" ]; then
-        printf 'CAPTCHA Site Key: '
-        read -r CAPTCHA_SITEKEY
-        printf 'CAPTCHA Secret Key: '
-        read -r CAPTCHA_SECRET
+    # Load or ask for keys
+    TURNSTILE_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.turnstile.sitekey // empty')
+    TURNSTILE_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.turnstile.secret // empty')
+    RECAPTCHA_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.recaptcha.sitekey // empty')
+    RECAPTCHA_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.recaptcha.secret // empty')
+    HCAPTCHA_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.sitekey // empty')
+    HCAPTCHA_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.secret // empty')
+
+    if [ "${CAPTCHA_TYPE}" != "none" ]; then
+        case "${CAPTCHA_TYPE}" in
+            turnstile)
+                [ -z "${TURNSTILE_SITEKEY}" ] && { printf 'Cloudflare Turnstile Site Key: '; read -r TURNSTILE_SITEKEY; }
+                [ -z "${TURNSTILE_SECRET}" ] && { printf 'Cloudflare Turnstile Secret Key: '; read -r TURNSTILE_SECRET; }
+                ;;
+            recaptcha)
+                [ -z "${RECAPTCHA_SITEKEY}" ] && { printf 'Google reCAPTCHA v3 Site Key: '; read -r RECAPTCHA_SITEKEY; }
+                [ -z "${RECAPTCHA_SECRET}" ] && { printf 'Google reCAPTCHA v3 Secret Key: '; read -r RECAPTCHA_SECRET; }
+                ;;
+            hcaptcha)
+                [ -z "${HCAPTCHA_SITEKEY}" ] && { printf 'hCaptcha Site Key: '; read -r HCAPTCHA_SITEKEY; }
+                [ -z "${HCAPTCHA_SECRET}" ] && { printf 'hCaptcha Secret Key: '; read -r HCAPTCHA_SECRET; }
+                ;;
+        esac
     fi
 
     # Save settings
@@ -175,12 +184,16 @@ main() {
         --arg meta "${META_DESC}" \
         --arg og "${OG_DESC}" \
         --arg captcha_type "${CAPTCHA_TYPE}" \
-        --arg sitekey "${CAPTCHA_SITEKEY}" \
-        --arg secret "${CAPTCHA_SECRET}" \
+        --arg turnstile_sitekey "${TURNSTILE_SITEKEY}" \
+        --arg turnstile_secret "${TURNSTILE_SECRET}" \
+        --arg recaptcha_sitekey "${RECAPTCHA_SITEKEY}" \
+        --arg recaptcha_secret "${RECAPTCHA_SECRET}" \
+        --arg hcaptcha_sitekey "${HCAPTCHA_SITEKEY}" \
+        --arg hcaptcha_secret "${HCAPTCHA_SECRET}" \
         --arg to "${TO_EMAIL}" \
         --arg from "${FROM_EMAIL}" \
         --argjson min_seconds "${MIN_SECONDS}" \
-        '{web_root: $web_root, scripts_dir: $scripts_dir, site_title: $site_title, url: $url, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, sitekey: $sitekey, secret: $secret}, contact: {to: $to, from: $from, min_seconds: $min_seconds}, version: "'${VISDIR_VERSION}'"}')
+        '{web_root: $web_root, scripts_dir: $scripts_dir, site_title: $site_title, url: $url, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, turnstile: {sitekey: $turnstile_sitekey, secret: $turnstile_secret}, recaptcha: {sitekey: $recaptcha_sitekey, secret: $recaptcha_secret}, hcaptcha: {sitekey: $hcaptcha_sitekey, secret: $hcaptcha_secret}}, contact: {to: $to, from: $from, min_seconds: $min_seconds}, version: "'${VISDIR_VERSION}'"}')
 
     save_settings "${SETTINGS}"
     log "Settings saved to ${SETTINGS_FILE}"
@@ -210,12 +223,10 @@ main() {
     log "Copying scripts to ${SCRIPTS_DIR}..."
     cp -a scripts "${SCRIPTS_DIR}/"
 
-    # data.json.example
+    # data.json + site.name replacement
     if [ ! -f "${WEB_ROOT}/data.json" ]; then
         cp public_html/data.json.example "${WEB_ROOT}/data.json"
-        log "Created data.json from example. Please edit it with your real directory data."
     fi
-    # Replace site.name with user's title
     jq --arg title "${SITE_TITLE}" '.site.name = $title' "${WEB_ROOT}/data.json" > "${WEB_ROOT}/data.json.tmp" && mv "${WEB_ROOT}/data.json.tmp" "${WEB_ROOT}/data.json"
     log "Updated site.name in data.json to '${SITE_TITLE}'"
 
@@ -225,7 +236,7 @@ main() {
     # URL
     sed -i "s|https://yourdomain.com|${URL}|g" "${WEB_ROOT}/"*.html "${WEB_ROOT}/sitemap.xml" "${WEB_ROOT}/robots.txt"
 
-    # Site title replacements
+    # Site title
     sed -i "s|VisDir|${SITE_TITLE}|g" "${WEB_ROOT}/"*.html
 
     # Meta tags
@@ -243,28 +254,39 @@ main() {
         sed -i "s|PROJECT_DIR = Path(\"../public_html\").resolve()|PROJECT_DIR = Path(\"${RELATIVE_PATH}\").resolve()|" "${SCRIPTS_DIR}/update-thumbnails.py"
     fi
 
-    # CAPTCHA handling
-    log "Configuring CAPTCHA..."
-    if [ "${CAPTCHA_TYPE}" = "turnstile" ]; then
-        sed -i '/Cloudflare Turnstile (Recommended)/,/<\/div>/s/<!-- //' "${WEB_ROOT}/contact.html"
-        sed -i '/Cloudflare Turnstile (Recommended)/,/<\/div>/s| -->||' "${WEB_ROOT}/contact.html"
-        sed -i '/--- Cloudflare Turnstile (Recommended) ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${WEB_ROOT}/contact.php"
-    elif [ "${CAPTCHA_TYPE}" = "recaptcha" ]; then
-        sed -i '/Google reCAPTCHA v3/,/<\/script>/s/<!-- //' "${WEB_ROOT}/contact.html"
-        sed -i '/Google reCAPTCHA v3/,/<\/script>/s| -->||' "${WEB_ROOT}/contact.html"
-        sed -i '/--- Google reCAPTCHA v3 ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${WEB_ROOT}/contact.php"
-    elif [ "${CAPTCHA_TYPE}" = "hcaptcha" ]; then
-        sed -i '/hCaptcha/,/<\/div>/s/<!-- //' "${WEB_ROOT}/contact.html"
-        sed -i '/hCaptcha/,/<\/div>/s| -->||' "${WEB_ROOT}/contact.html"
-        sed -i '/--- hCaptcha ---/,/^\*\//s|^/\*||; /^\*\//s|^\*/||' "${WEB_ROOT}/contact.php"
-    else
-        # None - comment everything
-        sed -i '/Cloudflare Turnstile/,/<\/div>/s|^|<!-- |; /<\/div>/s|$| -->|' "${WEB_ROOT}/contact.html"
-        sed -i '/Google reCAPTCHA v3/,/<\/script>/s|^|<!-- |; /<\/script>/s|$| -->|' "${WEB_ROOT}/contact.html"
-        sed -i '/hCaptcha/,/<\/div>/s|^|<!-- |; /<\/div>/s|$| -->|' "${WEB_ROOT}/contact.html"
-        sed -i '/--- Cloudflare Turnstile/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${WEB_ROOT}/contact.php"
-        sed -i '/--- Google reCAPTCHA v3 ---/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${WEB_ROOT}/contact.php"
-        sed -i '/--- hCaptcha ---/,/^\*\//s|^|/*|; /^\*\//s|$|*/|' "${WEB_ROOT}/contact.php"
+    # === CAPTCHA Activation ===
+    if [ "${CAPTCHA_TYPE}" != "none" ]; then
+        log "Activating ${CAPTCHA_TYPE} CAPTCHA..."
+
+        case "${CAPTCHA_TYPE}" in
+            turnstile)
+                SITEKEY="${TURNSTILE_SITEKEY}"
+                SECRET="${TURNSTILE_SECRET}"
+                MARKER="CLOUDFLARE-TURNSTILE"
+                ;;
+            recaptcha)
+                SITEKEY="${RECAPTCHA_SITEKEY}"
+                SECRET="${RECAPTCHA_SECRET}"
+                MARKER="GOOGLE-RECAPTCHA-V3"
+                ;;
+            hcaptcha)
+                SITEKEY="${HCAPTCHA_SITEKEY}"
+                SECRET="${HCAPTCHA_SECRET}"
+                MARKER="HCAPTCHA"
+                ;;
+        esac
+
+        # Activate all matching segments in contact.html
+        sed -i "/${MARKER}-BEGIN/s|${MARKER}-BEGIN|${MARKER}-BEGIN -->|" "${WEB_ROOT}/contact.html"
+        sed -i "/${MARKER}-END/s|${MARKER}-END|${MARKER}-END -->|" "${WEB_ROOT}/contact.html"
+
+        # Activate all matching segments in contact.php
+        sed -i "/${MARKER}-BEGIN/s|${MARKER}-BEGIN|${MARKER}-BEGIN */|" "${WEB_ROOT}/contact.php"
+        sed -i "/${MARKER}-END/s|${MARKER}-END|${MARKER}-END */|" "${WEB_ROOT}/contact.php"
+
+        # Replace placeholder keys
+        sed -i "s|YOUR_${MARKER}_SITE_KEY_HERE|${SITEKEY}|g" "${WEB_ROOT}/contact.html" "${WEB_ROOT}/contact.php"
+        sed -i "s|YOUR_${MARKER}_SECRET_KEY_HERE|${SECRET}|g" "${WEB_ROOT}/contact.php"
     fi
 
     log "Deployment completed successfully!"
