@@ -87,11 +87,9 @@ main() {
         [ -n "${input}" ] && SCRIPTS_DIR="${input}"
     fi
 
-    if [ -z "${SITE_TITLE}" ] || [ "${SITE_TITLE}" = "VisDir" ]; then
-        printf 'Site title [%s]: ' "${SITE_TITLE}"
-        read -r input
-        [ -n "${input}" ] && SITE_TITLE="${input}"
-    fi
+   printf 'Site title [%s]: ' "${SITE_TITLE}"
+   read -r input
+   [ -n "${input}" ] && SITE_TITLE="${input}"
 
     if [ -z "${URL}" ] || [[ "${URL}" != http* ]]; then
         while true; do
