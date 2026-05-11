@@ -104,6 +104,10 @@ main() {
         printf 'Site title [%s]: ' "${SITE_TITLE}"
         read -r input
         [ -n "${input}" ] && SITE_TITLE="${input}"
+    else
+        printf 'Site title [%s]: ' "${SITE_TITLE}"
+        read -r input
+        [ -n "${input}" ] && SITE_TITLE="${input}"
     fi
 
     if [ -z "${URL}" ] || [[ "${URL}" != http* ]]; then
@@ -211,6 +215,9 @@ main() {
         cp public_html/data.json.example "${WEB_ROOT}/data.json"
         log "Created data.json from example. Please edit it with your real directory data."
     fi
+    # Replace site.name with user's title
+    jq --arg title "${SITE_TITLE}" '.site.name = $title' "${WEB_ROOT}/data.json" > "${WEB_ROOT}/data.json.tmp" && mv "${WEB_ROOT}/data.json.tmp" "${WEB_ROOT}/data.json"
+    log "Updated site.name in data.json to '${SITE_TITLE}'"
 
     # === Apply settings ===
     log "Applying your custom settings..."
