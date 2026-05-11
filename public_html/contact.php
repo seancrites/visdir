@@ -64,7 +64,7 @@ if (isset($_SERVER['HTTP_REFERER']))
    }
 }
 
-// Uncomment the line below to enforce referer check:
+// Enforce referer check:
 $ENFORCE_REFERER_CHECK = false;
 if ($ENFORCE_REFERER_CHECK && !$valid_referer)
 {
