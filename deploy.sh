@@ -6,7 +6,7 @@
 # Handles first-time installation and future upgrades after git pull.
 # Saves user customizations in deploy-settings.json (gitignored).
 # AUTHOR: Sean Crites
-# VERSION: 1.0.2
+# VERSION: 1.0.3
 # DATE: 2026-05-11
 # BASHISMS: Yes (jq for JSON handling only)
 # DEPENDENCIES: bash, sed, jq (recommended), git, mkdir, cp, chmod, realpath
@@ -61,6 +61,42 @@ load_captcha_keys() {
    RECAPTCHA_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.recaptcha.secret // empty')
    HCAPTCHA_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.sitekey // empty')
    HCAPTCHA_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.secret // empty')
+}
+
+# New helper: clean, consistent prompting for CAPTCHA keys
+# (beneficial for maintainability - isolates key-entry logic)
+prompt_captcha_keys() {
+   if [ "${CAPTCHA_TYPE}" != "none" ]; then
+      case "${CAPTCHA_TYPE}" in
+         turnstile)
+            printf 'Cloudflare Turnstile Site Key [%s]: ' "${TURNSTILE_SITEKEY}"
+            read -r input
+            [ -n "${input}" ] && TURNSTILE_SITEKEY="${input}"
+
+            printf 'Cloudflare Turnstile Secret Key [%s]: ' "${TURNSTILE_SECRET}"
+            read -r input
+            [ -n "${input}" ] && TURNSTILE_SECRET="${input}"
+            ;;
+         recaptcha)
+            printf 'Google reCAPTCHA v3 Site Key [%s]: ' "${RECAPTCHA_SITEKEY}"
+            read -r input
+            [ -n "${input}" ] && RECAPTCHA_SITEKEY="${input}"
+
+            printf 'Google reCAPTCHA v3 Secret Key [%s]: ' "${RECAPTCHA_SECRET}"
+            read -r input
+            [ -n "${input}" ] && RECAPTCHA_SECRET="${input}"
+            ;;
+         hcaptcha)
+            printf 'hCaptcha Site Key [%s]: ' "${HCAPTCHA_SITEKEY}"
+            read -r input
+            [ -n "${input}" ] && HCAPTCHA_SITEKEY="${input}"
+
+            printf 'hCaptcha Secret Key [%s]: ' "${HCAPTCHA_SECRET}"
+            read -r input
+            [ -n "${input}" ] && HCAPTCHA_SECRET="${input}"
+            ;;
+      esac
+   fi
 }
 
 # Prompting function – reusable for first run + edit loop
@@ -170,41 +206,8 @@ ask_all_settings() {
       4) CAPTCHA_TYPE="none" ;;
    esac
 
-   # Load or ask for keys (only for chosen provider)
-   if [ "${CAPTCHA_TYPE}" != "none" ]; then
-      case "${CAPTCHA_TYPE}" in
-         turnstile)
-            while [ -z "${TURNSTILE_SITEKEY:-}" ]; do
-               printf 'Cloudflare Turnstile Site Key: '
-               read -r TURNSTILE_SITEKEY
-            done
-            while [ -z "${TURNSTILE_SECRET:-}" ]; do
-               printf 'Cloudflare Turnstile Secret Key: '
-               read -r TURNSTILE_SECRET
-            done
-            ;;
-         recaptcha)
-            while [ -z "${RECAPTCHA_SITEKEY:-}" ]; do
-               printf 'Google reCAPTCHA v3 Site Key: '
-               read -r RECAPTCHA_SITEKEY
-            done
-            while [ -z "${RECAPTCHA_SECRET:-}" ]; do
-               printf 'Google reCAPTCHA v3 Secret Key: '
-               read -r RECAPTCHA_SECRET
-            done
-            ;;
-         hcaptcha)
-            while [ -z "${HCAPTCHA_SITEKEY:-}" ]; do
-               printf 'hCaptcha Site Key: '
-               read -r HCAPTCHA_SITEKEY
-            done
-            while [ -z "${HCAPTCHA_SECRET:-}" ]; do
-               printf 'hCaptcha Secret Key: '
-               read -r HCAPTCHA_SECRET
-            done
-            ;;
-      esac
-   fi
+   # Prompt for keys using dedicated helper (new in v1.0.3)
+   prompt_captcha_keys
 }
 
 # ----------------------------------------------------------------------------
@@ -229,7 +232,7 @@ main() {
    MIN_SECONDS=$(echo "${SETTINGS}" | jq -r '.contact.min_seconds // 3')
    ENFORCE_REFERER=$(echo "${SETTINGS}" | jq -r '.contact.enforce_referer_check // false')
 
-   # Load CAPTCHA keys via dedicated helper (new in v1.0.2)
+   # Load CAPTCHA keys via dedicated helper
    load_captcha_keys
 
    # First run of prompts
@@ -269,7 +272,7 @@ main() {
       esac
    done
 
-   # === Everything below this line is unchanged from v1.0.1 ===
+   # === Everything below this line is unchanged from v1.0.2 ===
    # Save settings
    SETTINGS=$(jq -n \
       --arg web_root "${WEB_ROOT}" \
