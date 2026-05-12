@@ -10,9 +10,27 @@
 # DATE: 2026-05-11
 # BASHISMS: Yes (jq for JSON handling only)
 # DEPENDENCIES: bash, sed, jq (recommended), git, mkdir, cp, chmod, realpath
+#
+# ERROR HANDLING: set -euo pipefail is active for strong error protection.
+# All read commands use "|| true" to prevent set -e from exiting on EOF/Ctrl+D.
+# The two infinite-loop contexts (URL first-time, deploy confirm) use
+# "if ! read -r" to detect EOF and abort with a clear message.
 # =============================================================================
 
 set -euo pipefail
+
+# ----------------------------------------------------------------------------
+# Minimal helpers (defined early so they can be used below)
+# ----------------------------------------------------------------------------
+log() { printf '[deploy] %s\n' "$1"; }
+error() { printf 'ERROR: %s\n' "$1" >&2; }
+
+# If not running interactively, bail out — this script is interactive-only
+if [ ! -t 0 ]; then
+    error "This script must be run interactively (stdin is not a terminal)."
+    error "It is not designed for piped input or non-interactive automation."
+    exit 1
+fi
 
 # ----------------------------------------------------------------------------
 # Configuration
@@ -28,9 +46,6 @@ VERSION_FILE="${PROJECT_ROOT}/VERSION"
 print_header() {
    printf '\n=== VisDir Deploy / Upgrade Tool ===\n\n'
 }
-
-log() { printf '[deploy] %s\n' "$1"; }
-error() { printf 'ERROR: %s\n' "$1" >&2; }
 
 get_visdir_version() {
    if [ -f "${VERSION_FILE}" ]; then
@@ -70,33 +85,34 @@ prompt_captcha_keys() {
       case "${CAPTCHA_TYPE}" in
          turnstile)
             printf 'Cloudflare Turnstile Site Key [%s]: ' "${TURNSTILE_SITEKEY}"
-            read -r input
+            read -r input || true
             [ -n "${input}" ] && TURNSTILE_SITEKEY="${input}"
 
             printf 'Cloudflare Turnstile Secret Key [%s]: ' "${TURNSTILE_SECRET}"
-            read -r input
+            read -r input || true
             [ -n "${input}" ] && TURNSTILE_SECRET="${input}"
             ;;
          recaptcha)
             printf 'Google reCAPTCHA v3 Site Key [%s]: ' "${RECAPTCHA_SITEKEY}"
-            read -r input
+            read -r input || true
             [ -n "${input}" ] && RECAPTCHA_SITEKEY="${input}"
 
             printf 'Google reCAPTCHA v3 Secret Key [%s]: ' "${RECAPTCHA_SECRET}"
-            read -r input
+            read -r input || true
             [ -n "${input}" ] && RECAPTCHA_SECRET="${input}"
             ;;
          hcaptcha)
             printf 'hCaptcha Site Key [%s]: ' "${HCAPTCHA_SITEKEY}"
-            read -r input
+            read -r input || true
             [ -n "${input}" ] && HCAPTCHA_SITEKEY="${input}"
 
             printf 'hCaptcha Secret Key [%s]: ' "${HCAPTCHA_SECRET}"
-            read -r input
+            read -r input || true
             [ -n "${input}" ] && HCAPTCHA_SECRET="${input}"
             ;;
       esac
    fi
+   return 0
 }
 
 # Prompting function – reusable for first run + edit loop
@@ -105,10 +121,10 @@ ask_all_settings() {
    # === Prompts with [current value] in brackets ===
    if [ -z "${WEB_ROOT}" ]; then
       printf 'Web root folder (where index.html should live): '
-      read -r WEB_ROOT
+      read -r WEB_ROOT || true
    else
       printf 'Web root folder [%s]: ' "${WEB_ROOT}"
-      read -r input
+      read -r input || true
       [ -n "${input}" ] && WEB_ROOT="${input}"
    fi
 
@@ -116,22 +132,25 @@ ask_all_settings() {
    if [ -z "${SCRIPTS_DIR}" ]; then
       SCRIPTS_DIR="${DEFAULT_SCRIPTS}"
       printf 'Scripts folder [%s]: ' "${SCRIPTS_DIR}"
-      read -r input
+      read -r input || true
       [ -n "${input}" ] && SCRIPTS_DIR="${input}"
    else
       printf 'Scripts folder [%s]: ' "${SCRIPTS_DIR}"
-      read -r input
+      read -r input || true
       [ -n "${input}" ] && SCRIPTS_DIR="${input}"
    fi
 
    printf 'Site title [%s]: ' "${SITE_TITLE}"
-   read -r input
+   read -r input || true
    [ -n "${input}" ] && SITE_TITLE="${input}"
 
    if [ -z "${URL}" ] || [[ "${URL}" != http* ]]; then
       while true; do
          printf 'Base URL (must start with http:// or https://): '
-         read -r URL
+         if ! read -r URL; then
+            error "Input cancelled during URL prompt."
+            exit 1
+         fi
          if [[ "${URL}" == http* ]]; then
             break
          else
@@ -140,35 +159,35 @@ ask_all_settings() {
       done
    else
       printf 'Base URL [%s]: ' "${URL}"
-      read -r input
+      read -r input || true
       [ -n "${input}" ] && URL="${input}"
    fi
 
-   [ -z "${META_DESC}" ] && { printf '\nMeta description (search results):\n'; read -r META_DESC; } || { printf 'Meta description [%s]: ' "${META_DESC}"; read -r input; [ -n "${input}" ] && META_DESC="${input}"; }
-   [ -z "${OG_DESC}" ] && { printf '\nOpen Graph description (social shares):\n'; read -r OG_DESC; } || { printf 'Open Graph description [%s]: ' "${OG_DESC}"; read -r input; [ -n "${input}" ] && OG_DESC="${input}"; }
-   [ -z "${TO_EMAIL}" ] && { printf '\nContact form "To" email: '; read -r TO_EMAIL; } || { printf 'Contact form "To" email [%s]: ' "${TO_EMAIL}"; read -r input; [ -n "${input}" ] && TO_EMAIL="${input}"; }
+   [ -z "${META_DESC}" ] && { printf '\nMeta description (search results):\n'; read -r META_DESC || true; } || { printf 'Meta description [%s]: ' "${META_DESC}"; read -r input || true; [ -n "${input}" ] && META_DESC="${input}"; }
+   [ -z "${OG_DESC}" ] && { printf '\nOpen Graph description (social shares):\n'; read -r OG_DESC || true; } || { printf 'Open Graph description [%s]: ' "${OG_DESC}"; read -r input || true; [ -n "${input}" ] && OG_DESC="${input}"; }
+   [ -z "${TO_EMAIL}" ] && { printf '\nContact form "To" email: '; read -r TO_EMAIL || true; } || { printf 'Contact form "To" email [%s]: ' "${TO_EMAIL}"; read -r input || true; [ -n "${input}" ] && TO_EMAIL="${input}"; }
 
    if [ -z "${FROM_EMAIL}" ]; then
       DOMAIN=$(echo "${URL}" | sed -E 's|https?://([^/]+).*|\1|')
       FROM_EMAIL="no-reply@${DOMAIN}"
       printf 'Contact form "From" address [%s]: ' "${FROM_EMAIL}"
-      read -r input
+      read -r input || true
       [ -n "${input}" ] && FROM_EMAIL="${input}"
    else
       printf 'Contact form "From" address [%s]: ' "${FROM_EMAIL}"
-      read -r input
+      read -r input || true
       [ -n "${input}" ] && FROM_EMAIL="${input}"
    fi
 
    # Minimum Submit Seconds
    printf 'Minimum submit seconds [%s]: ' "${MIN_SECONDS}"
-   read -r input
+   read -r input || true
    [ -n "${input}" ] && MIN_SECONDS="${input}"
 
    # Enforce Referer Check
    while true; do
       printf 'Enforce Referer Check? [true/false] [%s]: ' "${ENFORCE_REFERER}"
-      read -r input
+      read -r input || true
       if [ -z "${input}" ]; then
          break
       fi
@@ -189,7 +208,7 @@ ask_all_settings() {
    printf '4) None\n'
    while true; do
       printf 'Choice 1-4 [%s]: ' "${LAST_CHOICE}"
-      read -r choice
+      read -r choice || true
       if [ -z "${choice}" ]; then
          choice="${LAST_CHOICE}"
       fi
@@ -208,6 +227,7 @@ ask_all_settings() {
 
    # Prompt for keys using dedicated helper (new in v1.0.3)
    prompt_captcha_keys
+   return 0
 }
 
 # ----------------------------------------------------------------------------
@@ -262,7 +282,10 @@ main() {
       fi
       printf '============================\n'
       printf 'Proceed with deployment? [y/e/n]: '
-      read -r confirm
+      if ! read -r confirm; then
+         log "Input cancelled. Aborting deployment."
+         exit 0
+      fi
 
       case "${confirm}" in
          [Yy]) break ;;
@@ -331,9 +354,14 @@ main() {
    log "Applying your custom settings..."
    sed -i "s|https://yourdomain.com|${URL}|g" "${WEB_ROOT}/"*.html "${WEB_ROOT}/sitemap.xml" "${WEB_ROOT}/robots.txt"
    sed -i "s|Visual Directory|${SITE_TITLE}|g" "${WEB_ROOT}/"*.html
+   # Handle meta description — template may wrap across two lines
+   sed -i '/<meta name="description"/{N;s|<meta name="description"\n[[:space:]]*content="[^"]*">|<meta name="description" content="'"${META_DESC}"'">|;}' "${WEB_ROOT}/index.html"
+   # Also handle single-line meta description if multi-line sed didn't match
    sed -i "s|<meta name=\"description\" content=\"[^\"]*\">|<meta name=\"description\" content=\"${META_DESC}\">|" "${WEB_ROOT}/index.html"
+   # Handle OG description — same approach (multi-line then single-line fallback)
+   sed -i '/<meta property="og:description"/{N;s|<meta property="og:description"\n[[:space:]]*content="[^"]*">|<meta property="og:description" content="'"${OG_DESC}"'">|;}' "${WEB_ROOT}/index.html"
    sed -i "s|<meta property=\"og:description\" content=\"[^\"]*\">|<meta property=\"og:description\" content=\"${OG_DESC}\">|" "${WEB_ROOT}/index.html"
-   sed -i "s|\$to = .*;|\$to = \"${TO_EMAIL}\";|" "${WEB_ROOT}/contact.php"
+   sed -i "s|\$to[[:space:]]*= .*;|\$to = \"${TO_EMAIL}\";|" "${WEB_ROOT}/contact.php"
    sed -i "s|no-reply@yourdomain.com|${FROM_EMAIL}|" "${WEB_ROOT}/contact.php"
    sed -i "s|\$MINIMUM_SUBMIT_SECONDS = .*;|\$MINIMUM_SUBMIT_SECONDS = ${MIN_SECONDS};|" "${WEB_ROOT}/contact.php"
    sed -i "s|\$ENFORCE_REFERER_CHECK = .*;|\$ENFORCE_REFERER_CHECK = ${ENFORCE_REFERER};|" "${WEB_ROOT}/contact.php"
@@ -366,7 +394,12 @@ main() {
       sed -i "s|${MARKER}-END|<!-- ${MARKER}-END|" "${WEB_ROOT}/contact.html"
       sed -i "s|${MARKER}-BEGIN|${MARKER}-BEGIN */|" "${WEB_ROOT}/contact.php"
       sed -i "s|${MARKER}-END|/* ${MARKER}-END|" "${WEB_ROOT}/contact.php"
+      # Replace sitekey and secret in HTML and PHP templates
+      # Templates use inconsistent naming: SITEKEY vs SITE_KEY, SECRET vs SECRET_KEY
+      # Try both forms to handle all CAPTCHA providers
+      sed -i "s|YOUR_${MARKER}_SITEKEY_HERE|${SITEKEY}|g" "${WEB_ROOT}/contact.html" "${WEB_ROOT}/contact.php"
       sed -i "s|YOUR_${MARKER}_SITE_KEY_HERE|${SITEKEY}|g" "${WEB_ROOT}/contact.html" "${WEB_ROOT}/contact.php"
+      sed -i "s|YOUR_${MARKER}_SECRET_HERE|${SECRET}|g" "${WEB_ROOT}/contact.php"
       sed -i "s|YOUR_${MARKER}_SECRET_KEY_HERE|${SECRET}|g" "${WEB_ROOT}/contact.php"
    fi
 
