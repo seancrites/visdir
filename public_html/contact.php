@@ -97,7 +97,7 @@ if (empty($turnstile_token)) {
    header('Location: contact.html?status=error');
    exit;
 }
-$secret   = 'YOUR_TURNSTILE_SECRET_KEY_HERE';
+$secret   = 'YOUR_CLOUDFLARE-TURNSTILE_SECRET_KEY_HERE';
 $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, stream_context_create([
    'http' => [
       'method'  => 'POST',
@@ -119,7 +119,7 @@ if (empty($recaptcha_token)) {
     header('Location: contact.html?status=error');
     exit;
 }
-$secret = 'YOUR_RECAPTCHA_SECRET_KEY_HERE';
+$secret = 'YOUR_GOOGLE-RECAPTCHA-V3_SECRET_KEY_HERE';
 $resp   = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha_token}");
 $resp   = json_decode($resp);
 if (!$resp || $resp->score < 0.5) {

@@ -318,13 +318,13 @@ main() {
                 ;;
         esac
 
-        # Activate all matching segments in contact.html
-        sed -i "/${MARKER}-BEGIN/s|${MARKER}-BEGIN|${MARKER}-BEGIN -->|" "${WEB_ROOT}/contact.html"
-        sed -i "/${MARKER}-END/s|${MARKER}-END|${MARKER}-END -->|" "${WEB_ROOT}/contact.html"
+        # Activate HTML blocks
+        sed -i "s|${MARKER}-BEGIN|${MARKER}-BEGIN -->|" "${WEB_ROOT}/contact.html"
+        sed -i "s|${MARKER}-END|<!-- ${MARKER}-END|" "${WEB_ROOT}/contact.html"
 
-        # Activate all matching segments in contact.php
-        sed -i "/${MARKER}-BEGIN/s|${MARKER}-BEGIN|${MARKER}-BEGIN */|" "${WEB_ROOT}/contact.php"
-        sed -i "/${MARKER}-END/s|${MARKER}-END|${MARKER}-END */|" "${WEB_ROOT}/contact.php"
+        # Activate PHP blocks
+        sed -i "s|${MARKER}-BEGIN|${MARKER}-BEGIN */|" "${WEB_ROOT}/contact.php"
+        sed -i "s|${MARKER}-END|/* ${MARKER}-END|" "${WEB_ROOT}/contact.php"
 
         # Replace placeholder keys
         sed -i "s|YOUR_${MARKER}_SITE_KEY_HERE|${SITEKEY}|g" "${WEB_ROOT}/contact.html" "${WEB_ROOT}/contact.php"

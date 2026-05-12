@@ -45,7 +45,7 @@
 
    <!-- Option 2: Google reCAPTCHA v3 (Invisible) -->
    <!-- GOOGLE-RECAPTCHA-V3-BEGIN
-   <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY_HERE"></script>
+   <script src="https://www.google.com/recaptcha/api.js?render=YOUR_GOOGLE-RECAPTCHA-V3_SITE_KEY_HERE"></script>
    GOOGLE-RECAPTCHA-V3-END -->
 
    <!-- Option 3: hCaptcha -->
@@ -112,7 +112,7 @@
          <!-- Cloudflare Turnstile (Recommended) -->
          <!-- CLOUDFLARE-TURNSTILE-BEGIN
          <div class="flex justify-center">
-            <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
+            <div class="cf-turnstile" data-sitekey="YOUR_CLOUDFLARE-TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
          </div>
          CLOUDFLARE-TURNSTILE-END -->
 
@@ -229,7 +229,7 @@
    <script>
     document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
-        grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY_HERE', {action: 'submit'})
+        grecaptcha.execute('YOUR_GOOGLE-RECAPTCHA-V3_SITE_KEY_HERE', {action: 'submit'})
             .then(function(token) {
                 document.getElementById('recaptcha_token').value = token;
                 e.target.submit();   // now submit the form
