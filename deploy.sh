@@ -6,7 +6,7 @@
 # Handles first-time installation and future upgrades after git pull.
 # Saves user customizations in deploy-settings.json (gitignored).
 # AUTHOR: Sean Crites
-# VERSION: 1.0.3
+# VERSION: 1.5.0
 # DATE: 2026-05-11
 # DEPENDENCIES: bash, sed, jq, mkdir, cp, chmod, realpath
 #
