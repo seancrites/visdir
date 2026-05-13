@@ -64,8 +64,13 @@ if (isset($_SERVER['HTTP_REFERER']))
    }
 }
 
-// Uncomment the line below to enforce referer check:
-// if (!$valid_referer) { header('Location: contact.html?status=success'); exit; }
+// Enforce referer check:
+$ENFORCE_REFERER_CHECK = false;
+if ($ENFORCE_REFERER_CHECK && !$valid_referer)
+{
+   header('Location: contact.html?status=success');
+   exit;
+}
 
 // ==========================================================================
 // INPUT VALIDATION & SANITIZATION
@@ -86,51 +91,51 @@ if (empty($name) || empty($email) || empty($message) || !filter_var($email, FILT
 // ==========================================================================
 
 // --- Cloudflare Turnstile (Recommended) ---
-/*
+/* TURNSTILE-BEGIN
 $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
 if (empty($turnstile_token)) {
-    header('Location: contact.html?status=error');
-    exit;
+   header('Location: contact.html?status=error');
+   exit;
 }
-$secret   = 'YOUR_TURNSTILE_SECRET_KEY_HERE';
+$secret   = 'TURNSTILE_SECRET_KEY';
 $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, stream_context_create([
-    'http' => [
-        'method'  => 'POST',
-        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-        'content' => http_build_query(['secret' => $secret, 'response' => $turnstile_token])
-    ]
+   'http' => [
+      'method'  => 'POST',
+      'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+      'content' => http_build_query(['secret' => $secret, 'response' => $turnstile_token])
+   ]
 ]));
 $resp = json_decode($response);
 if (!$resp || !$resp->success) {
-    header('Location: contact.html?status=error');
-    exit;
+   header('Location: contact.html?status=error');
+   exit;
 }
-*/
+TURNSTILE-END */
 
 // --- Google reCAPTCHA v3 ---
-/*
+/* RECAPTCHA-BEGIN
 $recaptcha_token = $_POST['recaptcha_token'] ?? '';
 if (empty($recaptcha_token)) {
     header('Location: contact.html?status=error');
     exit;
 }
-$secret = 'YOUR_RECAPTCHA_SECRET_KEY_HERE';
+$secret = 'RECAPTCHA_SECRET_KEY';
 $resp   = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha_token}");
 $resp   = json_decode($resp);
 if (!$resp || $resp->score < 0.5) {
     header('Location: contact.html?status=error');
     exit;
 }
-*/
+RECAPTCHA-END */
 
 // --- hCaptcha ---
-/*
+/* HCAPTCHA-BEGIN
 $hcaptcha_token = $_POST['h-captcha-response'] ?? '';
 if (empty($hcaptcha_token)) {
     header('Location: contact.html?status=error');
     exit;
 }
-$secret   = 'YOUR_HCAPTCHA_SECRET_KEY_HERE';
+$secret   = 'HCAPTCHA_SECRET_KEY';
 $response = file_get_contents('https://hcaptcha.com/siteverify', false, stream_context_create([
     'http' => [
         'method'  => 'POST',
@@ -143,7 +148,7 @@ if (!$resp || !$resp->success) {
     header('Location: contact.html?status=error');
     exit;
 }
-*/
+HCAPTCHA-END */
 
 // ==========================================================================
 // EMAIL HANDLING

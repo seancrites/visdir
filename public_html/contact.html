@@ -8,14 +8,14 @@
    <meta name="version" content="1.5.0">
    <meta name="description"
       content="Secure contact form with optional CAPTCHA (Cloudflare Turnstile, reCAPTCHA v3, hCaptcha) and layered anti-spam protection.">
-   <meta property="og:title" content="Contact — VisDir">
+   <meta property="og:title" content="Contact — Visual Directory">
    <meta property="og:description" content="Send us a message through our spam-resistant contact form.">
    <meta property="og:type" content="website">
    <meta property="og:url" content="https://yourdomain.com/contact.html">
 
    <link rel="canonical" href="https://yourdomain.com/contact.html">
 
-   <title>Contact — VisDir</title>
+   <title>Contact — Visual Directory</title>
 
    <script src="https://cdn.tailwindcss.com"></script>
    <script>
@@ -39,13 +39,19 @@
    <!-- ==================== CAPTCHA OPTIONS (choose ONE) ==================== -->
 
    <!-- Option 1: Cloudflare Turnstile (Recommended - privacy friendly) -->
-   <!-- <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> -->
+   <!-- TURNSTILE-BEGIN
+   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+   TURNSTILE-END -->
 
    <!-- Option 2: Google reCAPTCHA v3 (Invisible) -->
-   <!-- <script src="https://www.google.com/recaptcha/api.js?render=YOUR_SITE_KEY_HERE"></script> -->
+   <!-- RECAPTCHA-BEGIN
+   <script src="https://www.google.com/recaptcha/api.js?render=RECAPTCHA_SITE_KEY"></script>
+   RECAPTCHA-END -->
 
    <!-- Option 3: hCaptcha -->
-   <!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
+   <!-- HCAPTCHA-BEGIN
+   <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+   HCAPTCHA-END -->
 </head>
 
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
@@ -104,17 +110,23 @@
          <!-- ==================== CAPTCHA WIDGETS ==================== -->
 
          <!-- Cloudflare Turnstile (Recommended) -->
-         <!-- <div class="flex justify-center">
-                <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
-            </div> -->
+         <!-- TURNSTILE-BEGIN
+         <div class="flex justify-center">
+            <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY" data-theme="auto"></div>
+         </div>
+         TURNSTILE-END -->
 
          <!-- Google reCAPTCHA v3 (Invisible) -->
-         <!-- <input type="hidden" id="recaptcha_token" name="recaptcha_token"> -->
+         <!-- RECAPTCHA-BEGIN
+         <input type="hidden" id="recaptcha_token" name="recaptcha_token">
+         RECAPTCHA-END -->
 
          <!-- hCaptcha -->
-         <!-- <div class="flex justify-center">
-                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
-            </div> -->
+         <!-- HCAPTCHA-BEGIN
+         <div class="flex justify-center">
+            <div class="h-captcha" data-sitekey="HCAPTCHA_SITE_KEY"></div>
+         </div>
+         HCAPTCHA-END -->
 
          <button type="submit"
             class="w-full bg-slate-900 hover:bg-amber-600 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-amber-600 text-white py-5 rounded-2xl font-semibold text-lg transition">
@@ -161,7 +173,7 @@
 
             document.getElementById('nav-brand').innerHTML = `
                     ${site.logo_svg || ''}
-                    <h1 class="text-2xl font-bold">${site.name || 'VisDir'}</h1>
+                    <h1 class="text-2xl font-bold">${site.name || 'Visual Directory'}</h1>
                 `;
 
             document.getElementById('motto-text').textContent = site.motto || '';
@@ -212,17 +224,18 @@
       };
    </script>
 
-   // Uncomment the block below when using Google reCAPTCHA v3 and add your site key
-   <!-- <script>
+   <!-- RECAPTCHA-BEGIN
+   <script>
     document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
-        grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY_HERE', {action: 'submit'})
+        grecaptcha.execute('RECAPTCHA_SITE_KEY', {action: 'submit'})
             .then(function(token) {
                 document.getElementById('recaptcha_token').value = token;
                 e.target.submit();   // now submit the form
             });
     });
-   </script> -->
+   </script>
+   RECAPTCHA-END -->
 
 </body>
 
