@@ -1,4 +1,4 @@
 # Generated thumbnails - never commit these
 public_html/thumbnails/*.png
-
+deploy-settings.json
 archive
