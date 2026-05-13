@@ -31,23 +31,74 @@ git clone https://github.com/seancrites/visdir.git
 cd visdir
 ```
 
-### 2. Copy files to your web server
+### 2. Run the deploy script (recommended)
+
+The included `deploy.sh` script handles everything: it copies files to your web root, applies all custom settings, activates your chosen CAPTCHA provider, and configures contact form and thumbnail paths — all interactively. **Settings are saved permanently**, so future upgrades via `git pull` followed by `./deploy.sh` will re-apply them automatically.
 
 ```bash
-# Example for Apache
-cp -r public_html/* /var/www/html/
-
-# Or create a symlink (adjust paths as needed)
-ln -s $(pwd)/public_html /var/www/html/visdir
+./deploy.sh
 ```
 
-### 3. Configure the project
+You will be prompted for:
 
-#### a. Edit `public_html/data.json`
+| Setting                | Description                                                |
+|------------------------|------------------------------------------------------------|
+| **Web root folder**    | Where `index.html` should live (e.g. `/var/www/html`)      |
+| **Scripts folder**     | Where helper scripts should be deployed                    |
+| **Site title**         | Displayed in the nav bar, header, and SEO `<title>` tag    |
+| **Base URL**           | Your site's full URL, including `https://`                 |
+| **Meta description**   | Short description for search engine results                |
+| **Open Graph desc.**   | Description that appears when shared on social media       |
+| **Contact "To" email** | Where contact form submissions are sent                    |
+| **Contact "From"**     | The sender address for emails sent by the form             |
+| **Min submit seconds** | Anti-spam minimum time before a form can be submitted      |
+| **Enforce referer**    | Anti-spam check that validates the form's origin           |
+| **CAPTCHA provider**   | Turnstile, reCAPTCHA v3, hCaptcha, or None                 |
+
+After reviewing the deployment summary, confirm with `y` to proceed. The script will:
+
+1. **Save all settings** to `deploy-settings.json` (auto-generated, gitignored) — these persist across future `git pull` + `./deploy.sh` upgrades
+2. **Back up** any existing files in the web root to `archive/backup-YYYYMMDD-HHMMSS/`
+3. **Copy** fresh `public_html/` files to the web root
+4. **Copy** the `scripts/` directory to your scripts folder
+5. **Apply** every setting: URL replacements, site title, meta/OG descriptions, contact form addresses, anti-spam thresholds, and CAPTCHA activation
+6. **Update** `data.json` with your site title (existing entity data is preserved)
+
+> **Need to change a setting later?** Just run `./deploy.sh` again — all previously saved values will be pre-filled. Edit what you need, confirm, and the script updates only the changed settings while keeping everything else intact.
+
+#### Settings persistence — the key to smooth upgrades
+
+All customizations are stored in `deploy-settings.json` (listed in `.gitignore` so it never gets committed or overwritten by upstream changes). This means:
+
+- ✅ **`git fetch` / `git merge` will never clobber your configuration**
+- ✅ **Re-running `./deploy.sh` after a `git pull` re-applies all your settings automatically**
+- ✅ **Thumbnails, data.json entity data, and generated content are never touched**
+- ✅ **A full backup is always created before any files are overwritten**
+- ✅ **Script paths and relative references are auto-configured to match your environment**
+
+> ⚠️ **Warning: Custom changes to deployed files will be overwritten.** Every re-run of `./deploy.sh` copies fresh files from `public_html/` to your web root, overwriting any custom modifications you may have made directly to deployed files (e.g., `index.html`, `contact.html`, `contact.php`, CSS, JavaScript). A timestamped backup of your web root is always saved to `archive/backup-YYYYMMDD-HHMMSS/` before new files are copied, but the only way to preserve custom code permanently is to add it upstream in the repository's `public_html/` source files. Files not in `public_html/` — such as `data.json`, thumbnails, and `deploy-settings.json` — are never overwritten.
+
+---
+
+### 3. What's next?
+
+After deployment, your site is live but still needs real data and (optionally) thumbnails:
+
+1. **Edit `data.json`** — populate the `entities` array with your directory listings (see [Configuration](#configuration) below)
+2. **Run the thumbnail updater** — see [Thumbnail Setup](#thumbnail-setup)
+3. **Set up cron** — schedule automatic thumbnail refreshes (see [Automate with Cron](#automate-with-cron))
+
+---
+
+## Configuration
+
+### a. Edit `public_html/data.json`
 
 Update `public_html/data.json` with your own site info and entities.
 
-##### Site fields
+> **Note for deploy.sh users:** The script automatically updates the `site.name` field in `data.json`. Entity data you add is never overwritten by re-running `deploy.sh`.
+
+#### Site fields
 
 | Field          | Type    | Description                                                                       |
 |----------------|---------|-----------------------------------------------------------------------------------|
@@ -62,7 +113,7 @@ Update `public_html/data.json` with your own site info and entities.
 | `support_label`| string  | Label for the support link (shown only if `support_url` is also set)              |
 | `logo_svg`     | string  | Inline SVG markup for the nav logo                                                |
 
-##### Entity fields
+#### Entity fields
 
 Each object in the `entities` array supports:
 
@@ -136,190 +187,37 @@ Examples:
 - Everything on: `Maintained by John Doe • Contact • Support • Built with VisDir`
 - Everything off: `Built with VisDir`
 
-#### b. Update `public_html/contact.php`
+### b. Update SEO tags in `public_html/index.html`
 
-Set your email address and from-domain:
+If you used `deploy.sh`, the base URL, meta description, and OG description have already been applied. If setting up manually, replace these placeholders:
+
+```html
+<meta property="og:url" content="https://yourdomain.com">
+<link rel="canonical" href="https://yourdomain.com">
+<meta name="description" content="Your description here">
+<meta property="og:description" content="Your social description here">
+```
+
+### c. Update `public_html/sitemap.xml` and `robots.txt`
+
+Replace `https://yourdomain.com` with your actual domain.
+
+> If you used `deploy.sh`, the URL has already been applied to these files.
+
+### d. Contact form email configuration
+
+If you used `deploy.sh`, the contact form email addresses and anti-spam settings have already been configured. If setting up manually, edit `public_html/contact.php`:
 
 ```php
 $to = "you@example.com";                         // ← Your email
 $headers = "From: no-reply@yourdomain.com\r\n";  // ← Your domain
 ```
 
-##### Anti-Spam Protections
+---
 
-The contact form includes 3 layered, invisible anti-bot protections that stop ~98% of drive-by spam automatically — **no CAPTCHAs, no external services, zero user impact**:
+## Thumbnail Setup
 
-| Protection            | Description                                                                                  | Effectiveness                     |
-|-----------------------|----------------------------------------------------------------------------------------------|-----------------------------------|
-| **CSS Honeypot**      | Invisible off-screen field that only bots will fill in. Humans will never see this field.    | ✅ Blocks 70% of bots             |
-| **Time Gate**         | Minimum submission delay enforced. No human fills out a form in < 3 seconds. Every bot does. | ✅ Blocks 95% of bots             |
-| **Origin Validation** | Only accept form submissions originating from your actual contact page.                      | ✅ Blocks 99% of direct POST bots |
-
-All spam rejections return a successful response. Bots have no idea they were blocked and will not retry or adapt.
-
-##### Configuration Options
-
-You may adjust these values at the top of `contact.php`:
-
-```php
-// Minimum seconds required to submit form. Recommended: 3
-// Set to 0 to disable this check entirely
-$MINIMUM_SUBMIT_SECONDS = 3;
-```
-
-Refer to the comments inside `contact.php` for full documentation on each protection.
-
-##### CAPTCHA Options (Optional Enhancement)
-
-In addition to the invisible protections above, you can optionally enable a visible CAPTCHA provider for extra protection on high-traffic or sensitive sites.
-
-**Supported providers:**
-
-- **Cloudflare Turnstile** (recommended – fast, privacy-friendly, low friction)
-- reCAPTCHA v3 (Google)
-- hCaptcha
-
-**Setup steps:**
-
-1. Open `public_html/contact.html`
-2. Uncomment the block for your chosen provider near the form submit button:
-
-```html
-<!-- Cloudflare Turnstile (recommended) -->
-<!-- <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY" data-callback="onTurnstileSuccess"></div> -->
-
-<!-- OR reCAPTCHA v3 -->
-<!-- <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITEKEY"></script> -->
-
-<!-- OR hCaptcha -->
-<!-- <script src="https://js.hcaptcha.com/1/api.js" async defer></script> -->
-```
-
-1. Uncomment the appropiate widget:
-
-```html
-         <!-- ==================== CAPTCHA WIDGETS ==================== -->
-
-         <!-- Cloudflare Turnstile (Recommended) -->
-         <!-- <div class="flex justify-center">
-                <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
-            </div> -->
-
-         <!-- Google reCAPTCHA v3 (Invisible) -->
-         <!-- <input type="hidden" id="recaptcha_token" name="recaptcha_token"> -->
-
-         <!-- hCaptcha -->
-         <!-- <div class="flex justify-center">
-                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
-            </div> -->
-```
-
-  If using Google reCAPTCHA v3, uncomment the following script as well:
-
-```html
-   // Uncomment the block below when using Google reCAPTCHA v3 and add your site key
-   <!-- <script>
-    document.querySelector('form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY_HERE', {action: 'submit'})
-            .then(function(token) {
-                document.getElementById('recaptcha_token').value = token;
-                e.target.submit();   // now submit the form
-            });
-    });
-   </script> -->
-```
-
-1. In `public_html/contact.php`, configure the matching secret key and uncomment the validation block for your provider:
-
-```php
-
-# --- Cloudflare Turnstile (Recommended) ---
-/*
-$turnstile_token = $_POST['cf-turnstile-response'] ?? '';
-if (empty($turnstile_token)) {
-    header("Location: contact.html?status=error");
-    exit;
-}
-$secret = "YOUR_TURNSTILE_SECRET_KEY_HERE";
-$response = file_get_contents("https://challenges.cloudflare.com/turnstile/v0/siteverify", false, stream_context_create([
-    'http' => [
-        'method' => 'POST',
-        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-        'content' => http_build_query(['secret' => $secret, 'response' => $turnstile_token])
-    ]
-]));
-$resp = json_decode($response);
-if (!$resp || !$resp->success) {
-    header("Location: contact.html?status=error");
-    exit;
-}
-*/
-
-# --- Google reCAPTCHA v3 ---
-/*
-$recaptcha_token = $_POST['recaptcha_token'] ?? '';
-if (empty($recaptcha_token)) {
-    header("Location: contact.html?status=error");
-    exit;
-}
-$secret = "YOUR_RECAPTCHA_SECRET_KEY_HERE";
-$resp = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secret&response=$recaptcha_token");
-$resp = json_decode($resp);
-if (!$resp || $resp->score < 0.5) {
-    header("Location: contact.html?status=error");
-    exit;
-}
-*/
-
-# --- hCaptcha ---
-/*
-$hcaptcha_token = $_POST['h-captcha-response'] ?? '';
-if (empty($hcaptcha_token)) {
-    header("Location: contact.html?status=error");
-    exit;
-}
-$secret = "YOUR_HCAPTCHA_SECRET_KEY_HERE";
-$resp = file_get_contents("https://hcaptcha.com/siteverify", false, stream_context_create([
-    'http' => [
-        'method' => 'POST',
-        'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-        'content' => http_build_query(['secret' => $secret, 'response' => $hcaptcha_token])
-    ]
-]));
-$resp = json_decode($resp);
-if (!$resp || !$resp->success) {
-    header("Location: contact.html?status=error");
-    exit;
-}
-*/
-```
-
-**Security notes:**
-
-- All CAPTCHA tokens are validated server-side before any email is sent.
-- Failed CAPTCHA attempts return a clear, user-friendly error message.
-- The original invisible anti-spam protections (honeypot, time gate, origin validation) remain active at all times — CAPTCHA is an optional extra layer.
-- You can enable/disable the CAPTCHA widget without changing any other code.
-
-#### c. Update `public_html/sitemap.xml`
-
-Replace `https://yourdomain.com` with your actual domain.
-
-#### d. Update `public_html/robots.txt`
-
-Replace `https://yourdomain.com` with your actual domain.
-
-#### e. Update SEO tags in `public_html/index.html`
-
-Replace these placeholders with your domain:
-
-```html
-<meta property="og:url" content="https://yourdomain.com">
-<link rel="canonical" href="https://yourdomain.com">
-```
-
-### 4. Set up the Python environment and run the thumbnail updater
+### Python environment
 
 ```bash
 # Create venv (run once)
@@ -332,7 +230,185 @@ pip install playwright pillow
 playwright install chromium
 ```
 
-#### Optional: JSON ↔ CSV converter
+### Run the updater
+
+```bash
+./scripts/update-thumbnails.sh
+```
+
+> If you used `deploy.sh`, the script path in `update-thumbnails.py` has already been adjusted to match your environment.
+
+### Cron (automatic refreshes)
+
+To keep thumbnails fresh automatically:
+
+```bash
+crontab -e
+```
+
+Add (adjust paths to match your setup):
+
+```bash
+# Daily at 3:00 AM
+0 3 * * * /var/www/visdir/scripts/update-thumbnails.sh >/dev/null 2>&1
+```
+
+---
+
+## Anti-Spam Protections
+
+The contact form includes 3 layered, invisible anti-bot protections that stop ~98% of drive-by spam automatically — **no CAPTCHAs, no external services, zero user impact**:
+
+| Protection            | Description                                                                                  | Effectiveness                     |
+|-----------------------|----------------------------------------------------------------------------------------------|-----------------------------------|
+| **CSS Honeypot**      | Invisible off-screen field that only bots will fill in. Humans will never see this field.    | ✅ Blocks 70% of bots             |
+| **Time Gate**         | Minimum submission delay enforced. No human fills out a form in < 3 seconds. Every bot does. | ✅ Blocks 95% of bots             |
+| **Origin Validation** | Only accept form submissions originating from your actual contact page.                      | ✅ Blocks 99% of direct POST bots |
+
+All spam rejections return a successful response. Bots have no idea they were blocked and will not retry or adapt.
+
+### Configuration Options
+
+You may adjust these values at the top of `contact.php`:
+
+```php
+// Minimum seconds required to submit form. Recommended: 3
+// Set to 0 to disable this check entirely
+$MINIMUM_SUBMIT_SECONDS = 3;
+```
+
+Refer to the comments inside `contact.php` for full documentation on each protection.
+
+### CAPTCHA Options (Optional Enhancement)
+
+In addition to the invisible protections above, you can optionally enable a visible CAPTCHA provider for extra protection on high-traffic or sensitive sites.
+
+**Supported providers:**
+
+- **Cloudflare Turnstile** (recommended – fast, privacy-friendly, low friction)
+- reCAPTCHA v3 (Google)
+- hCaptcha
+
+#### How the CAPTCHA system works
+
+Each provider has pre-written blocks in both `contact.html` and `contact.php`, wrapped in comment markers:
+
+```
+HTML: <!-- TURNSTILE-BEGIN ... TURNSTILE-END -->
+PHP:  /* TURNSTILE-BEGIN ... TURNSTILE-END */
+```
+
+By default, these blocks are **commented out** (disabled). To activate a provider, you remove the opening comment marker and replace the placeholder tokens with your actual API keys:
+
+| File            | Placeholder           | Replace with                 |
+|-----------------|-----------------------|------------------------------|
+| `contact.html`  | `TURNSTILE_SITE_KEY`  | Your Turnstile site key      |
+| `contact.html`  | `RECAPTCHA_SITE_KEY`  | Your reCAPTCHA v3 site key   |
+| `contact.html`  | `HCAPTCHA_SITE_KEY`   | Your hCaptcha site key       |
+| `contact.php`   | `TURNSTILE_SECRET_KEY`| Your Turnstile secret key    |
+| `contact.php`   | `RECAPTCHA_SECRET_KEY`| Your reCAPTCHA v3 secret key |
+| `contact.php`   | `HCAPTCHA_SECRET_KEY` | Your hCaptcha secret key     |
+
+#### Option A: Automatic setup via deploy.sh (recommended)
+
+When you run `./deploy.sh`, you will be prompted to choose a CAPTCHA provider and enter your API keys. The script automatically:
+
+1. **Activates** the correct block by removing the comment markers from `contact.html` and `contact.php`
+2. **Replaces** the `SITE_KEY` placeholder with your actual site key
+3. **Replaces** the `SECRET_KEY` placeholder with your actual secret key
+
+All other provider blocks remain safely commented out. Re-run `./deploy.sh` anytime to switch providers or update keys — your previous choices are pre-filled.
+
+#### Option B: Manual setup
+
+1. **Open `public_html/contact.html`**
+
+2. **Activate your chosen provider's `<head>` script** — remove the `<!--` and `-->` comment markers around the script tag. For example, for Turnstile:
+
+   ```html
+   <!-- BEFORE (commented out): -->
+   <!-- TURNSTILE-BEGIN
+   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+   TURNSTILE-END -->
+
+   <!-- AFTER (active): -->
+   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+   ```
+
+   The three options in `<head>` (lines 41–54):
+
+   ```html
+   <!-- Option 1: Cloudflare Turnstile (Recommended - privacy friendly) -->
+   <!-- TURNSTILE-BEGIN
+   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+   TURNSTILE-END -->
+
+   <!-- Option 2: Google reCAPTCHA v3 (Invisible) -->
+   <!-- RECAPTCHA-BEGIN
+   <script src="https://www.google.com/recaptcha/api.js?render=RECAPTCHA_SITE_KEY"></script>
+   RECAPTCHA-END -->
+
+   <!-- Option 3: hCaptcha -->
+   <!-- HCAPTCHA-BEGIN
+   <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+   HCAPTCHA-END -->
+   ```
+
+3. **Activate the matching widget in the form body** (lines 112–129) — same approach, remove the comment markers. For Turnstile:
+
+   ```html
+   <!-- BEFORE (commented out): -->
+   <!-- TURNSTILE-BEGIN
+   <div class="flex justify-center">
+      <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY" data-theme="auto"></div>
+   </div>
+   TURNSTILE-END -->
+
+   <!-- AFTER (active): -->
+   <div class="flex justify-center">
+      <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY" data-theme="auto"></div>
+   </div>
+   ```
+
+4. **Replace the site key placeholder** — change `TURNSTILE_SITE_KEY` to your actual Turnstile site key (or `RECAPTCHA_SITE_KEY` / `HCAPTCHA_SITE_KEY` for other providers).
+
+5. **If using Google reCAPTCHA v3**, also activate the form submit handler at the bottom of `contact.html` (lines 227–238) — remove the `<!-- RECAPTCHA-BEGIN` / `RECAPTCHA-END -->` markers around the extra `<script>` block, and replace `RECAPTCHA_SITE_KEY` with your actual site key.
+
+6. **Open `public_html/contact.php`** and activate the validation block for your chosen provider (lines 93–151). Remove the `/* MARKER-BEGIN` / `MARKER-END */` comment markers and replace the `SECRET_KEY` placeholder. For Turnstile:
+
+   ```php
+   // BEFORE (commented out):
+   /* TURNSTILE-BEGIN
+   $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
+   if (empty($turnstile_token)) {
+      header('Location: contact.html?status=error');
+      exit;
+   }
+   $secret   = 'TURNSTILE_SECRET_KEY';
+   // ... full validation block ...
+   TURNSTILE-END */
+
+   // AFTER (active):
+   $turnstile_token = $_POST['cf-turnstile-response'] ?? '';
+   if (empty($turnstile_token)) {
+      header('Location: contact.html?status=error');
+      exit;
+   }
+   $secret   = '1q2w3e4r5t6y7u8i9o0p';   // ← your actual Turnstile secret key
+   // ... full validation block ...
+   ```
+
+**Security notes:**
+
+- All CAPTCHA tokens are validated server-side before any email is sent.
+- Failed CAPTCHA attempts return a clear, user-friendly error message.
+- The original invisible anti-spam protections (honeypot, time gate, origin validation) remain active at all times — CAPTCHA is an optional extra layer.
+- You can toggle a CAPTCHA provider on/off without touching any other code — just add or remove the comment markers.
+- The `deploy.sh` script handles all of this automatically and safely.
+
+---
+
+## JSON ↔ CSV Converter
 
 A standalone converter is included in `scripts/convert-data.py` for bulk editing. It requires **no extra packages**—only Python 3.
 
@@ -349,50 +425,46 @@ python scripts/convert-data.py --to-json entities.csv public_html/data.json
 
 > **Note:** CSV stores everything as text, so numeric and boolean fields will become strings on conversion back to JSON. Review the output and adjust types if needed.
 
-#### Configure the helper script paths
+---
 
-Open `scripts/update-thumbnails.sh` and verify or update these two variables near the top:
+## Manual Deployment (alternative)
 
-```bash
-VENV_DIR="${HOME}/visdir-env"                    # Path to the Python venv you created above
-SCRIPTS_DIR="$(dirname "$(realpath "$0")")"    # Usually auto-detected; change only if needed
-```
-
-#### Configure the Python script path
-
-Open `scripts/update-thumbnails.py` and verify this variable near the top:
-
-```python
-PROJECT_DIR = Path("../public_html").resolve()   # Points to your HTML files
-```
-
-If your project is at `/var/www/visdir` and the script is in `scripts/`, the default `../public_html` resolves correctly. If your layout is different, change it to an absolute path like `Path("/var/www/visdir/public_html")`.
-
-Run the updater:
+If you prefer to set things up by hand instead of using `deploy.sh`:
 
 ```bash
-./scripts/update-thumbnails.sh
+# Example for Apache
+cp -r public_html/* /var/www/html/
+
+# Or create a symlink (adjust paths as needed)
+ln -s $(pwd)/public_html /var/www/html/visdir
 ```
 
-### 5. Deploy
-
-Visit your site in a browser. Thumbnails will appear in `public_html/thumbnails/`.
+After copying, manually perform the steps described in [Configuration](#configuration) above.
 
 ---
 
-## Automate with Cron
+## Upgrading
 
-To keep thumbnails fresh automatically, add a cronjob that runs the updater on a schedule (e.g., daily at 3 AM):
+Because all settings are saved in `deploy-settings.json` (gitignored), upgrading is straightforward:
 
 ```bash
-# Open your crontab
-crontab -e
+cd /var/www/visdir
 
-# Add this line to run daily at 3:00 AM
-0 3 * * * /var/www/visdir/scripts/update-thumbnails.sh >/dev/null 2>&1
+# Fetch the latest code
+git fetch origin
+git merge origin/main
+
+# Re-run deploy — all previous settings are pre-filled
+./deploy.sh
 ```
 
-Adjust the path and schedule to match your server setup.
+The script will:
+
+- **Detect your existing settings** from `deploy-settings.json`
+- **Pre-fill every prompt** with your current values — just press Enter to accept or type new values
+- **Create a backup** of the current web root before copying new files
+- **Re-apply every customization** — URL, site title, meta tags, contact form config, CAPTCHA keys
+- **Preserve your data.json entity data** and thumbnails
 
 ---
 
