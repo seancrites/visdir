@@ -13,8 +13,8 @@
 #   python convert-data.py --to-json input.csv output.json --site-from old.json
 #
 # AUTHOR: Generated for the visdir project
-# VERSION: v1.5.0
-# DATE: 2026-04-25
+# VERSION: v2.0.0
+# DATE: 2026-05-12
 # =============================================================================
 
 import argparse

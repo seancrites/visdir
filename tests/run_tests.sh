@@ -5,8 +5,8 @@
 # Tests all CAPTCHA activation paths, general configuration sed operations,
 # and script integrity (syntax, non-interactive guard, settings round-trip).
 # AUTHOR: Sean Crites
-# VERSION: 1.5.0
-# DATE: 2026-05-11
+# VERSION: 2.0.0
+# DATE: 2026-05-12
 
 # Usage:  bash tests/run_tests.sh
 # =============================================================================

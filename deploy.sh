@@ -6,8 +6,8 @@
 # Handles first-time installation and future upgrades after git pull.
 # Saves user customizations in deploy-settings.json (gitignored).
 # AUTHOR: Sean Crites
-# VERSION: 1.5.0
-# DATE: 2026-05-11
+# VERSION: 2.0.0
+# DATE: 2026-05-12
 # DEPENDENCIES: bash, sed, jq, mkdir, cp, chmod, realpath
 #
 # ERROR HANDLING: set -euo pipefail is active for strong error protection.

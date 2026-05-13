@@ -6,8 +6,8 @@
 #          (activate venv → run → deactivate)
 #
 # AUTHOR: Generated for the visdir project
-# VERSION: v1.5.0
-# DATE: 2026-04-23
+# VERSION: v2.0.0
+# DATE: 2026-05-12
 # =============================================================================
 
 set -eo pipefail
