@@ -8,8 +8,7 @@
 # AUTHOR: Sean Crites
 # VERSION: 1.0.3
 # DATE: 2026-05-11
-# BASHISMS: Yes (jq for JSON handling only)
-# DEPENDENCIES: bash, sed, jq (recommended), git, mkdir, cp, chmod, realpath
+# DEPENDENCIES: bash, sed, jq, mkdir, cp, chmod, realpath
 #
 # ERROR HANDLING: set -euo pipefail is active for strong error protection.
 # All read commands use "|| true" to prevent set -e from exiting on EOF/Ctrl+D.
@@ -18,6 +17,11 @@
 # =============================================================================
 
 set -euo pipefail
+
+SETTINGS_FILE="deploy-settings.json"
+ARCHIVE_DIR="archive"
+PROJECT_ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)"
+VERSION_FILE="${PROJECT_ROOT}/VERSION"
 
 # ----------------------------------------------------------------------------
 # Minimal helpers (defined early so they can be used below)
@@ -31,14 +35,6 @@ if [ ! -t 0 ]; then
     error "It is not designed for piped input or non-interactive automation."
     exit 1
 fi
-
-# ----------------------------------------------------------------------------
-# Configuration
-# ----------------------------------------------------------------------------
-SETTINGS_FILE="deploy-settings.json"
-ARCHIVE_DIR="archive"
-PROJECT_ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)"
-VERSION_FILE="${PROJECT_ROOT}/VERSION"
 
 # ----------------------------------------------------------------------------
 # Helper functions
@@ -67,48 +63,44 @@ save_settings() {
    printf '%s\n' "$1" > "${PROJECT_ROOT}/${SETTINGS_FILE}"
 }
 
-# New helper: isolates jq dependency for CAPTCHA keys
-# (beneficial for maintainability and clarity)
 load_captcha_keys() {
-   TURNSTILE_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.turnstile.sitekey // empty')
-   TURNSTILE_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.turnstile.secret // empty')
-   RECAPTCHA_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.recaptcha.sitekey // empty')
-   RECAPTCHA_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.recaptcha.secret // empty')
-   HCAPTCHA_SITEKEY=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.sitekey // empty')
-   HCAPTCHA_SECRET=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.secret // empty')
+   TURNSTILE_SITE_KEY=$(echo "${SETTINGS}" | jq -r '.captcha.turnstile.site_key // empty')
+   TURNSTILE_SECRET_KEY=$(echo "${SETTINGS}" | jq -r '.captcha.turnstile.secret_key // empty')
+   RECAPTCHA_SITE_KEY=$(echo "${SETTINGS}" | jq -r '.captcha.recaptcha.site_key // empty')
+   RECAPTCHA_SECRET_KEY=$(echo "${SETTINGS}" | jq -r '.captcha.recaptcha.secret_key // empty')
+   HCAPTCHA_SITE_KEY=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.site_key // empty')
+   HCAPTCHA_SECRET_KEY=$(echo "${SETTINGS}" | jq -r '.captcha.hcaptcha.secret_key // empty')
 }
 
-# New helper: clean, consistent prompting for CAPTCHA keys
-# (beneficial for maintainability - isolates key-entry logic)
 prompt_captcha_keys() {
    if [ "${CAPTCHA_TYPE}" != "none" ]; then
       case "${CAPTCHA_TYPE}" in
          turnstile)
-            printf 'Cloudflare Turnstile Site Key [%s]: ' "${TURNSTILE_SITEKEY}"
+            printf 'Cloudflare Turnstile Site Key [%s]: ' "${TURNSTILE_SITE_KEY}"
             read -r input || true
-            [ -n "${input}" ] && TURNSTILE_SITEKEY="${input}"
+            [ -n "${input}" ] && TURNSTILE_SITE_KEY="${input}"
 
-            printf 'Cloudflare Turnstile Secret Key [%s]: ' "${TURNSTILE_SECRET}"
+            printf 'Cloudflare Turnstile Secret Key [%s]: ' "${TURNSTILE_SECRET_KEY}"
             read -r input || true
-            [ -n "${input}" ] && TURNSTILE_SECRET="${input}"
+            [ -n "${input}" ] && TURNSTILE_SECRET_KEY="${input}"
             ;;
          recaptcha)
-            printf 'Google reCAPTCHA v3 Site Key [%s]: ' "${RECAPTCHA_SITEKEY}"
+            printf 'Google reCAPTCHA v3 Site Key [%s]: ' "${RECAPTCHA_SITE_KEY}"
             read -r input || true
-            [ -n "${input}" ] && RECAPTCHA_SITEKEY="${input}"
+            [ -n "${input}" ] && RECAPTCHA_SITE_KEY="${input}"
 
-            printf 'Google reCAPTCHA v3 Secret Key [%s]: ' "${RECAPTCHA_SECRET}"
+            printf 'Google reCAPTCHA v3 Secret Key [%s]: ' "${RECAPTCHA_SECRET_KEY}"
             read -r input || true
-            [ -n "${input}" ] && RECAPTCHA_SECRET="${input}"
+            [ -n "${input}" ] && RECAPTCHA_SECRET_KEY="${input}"
             ;;
          hcaptcha)
-            printf 'hCaptcha Site Key [%s]: ' "${HCAPTCHA_SITEKEY}"
+            printf 'hCaptcha Site Key [%s]: ' "${HCAPTCHA_SITE_KEY}"
             read -r input || true
-            [ -n "${input}" ] && HCAPTCHA_SITEKEY="${input}"
+            [ -n "${input}" ] && HCAPTCHA_SITE_KEY="${input}"
 
-            printf 'hCaptcha Secret Key [%s]: ' "${HCAPTCHA_SECRET}"
+            printf 'hCaptcha Secret Key [%s]: ' "${HCAPTCHA_SECRET_KEY}"
             read -r input || true
-            [ -n "${input}" ] && HCAPTCHA_SECRET="${input}"
+            [ -n "${input}" ] && HCAPTCHA_SECRET_KEY="${input}"
             ;;
       esac
    fi
@@ -225,7 +217,7 @@ ask_all_settings() {
       4) CAPTCHA_TYPE="none" ;;
    esac
 
-   # Prompt for keys using dedicated helper (new in v1.0.3)
+   # Prompt for keys using dedicated function
    prompt_captcha_keys
    return 0
 }
@@ -260,7 +252,7 @@ main() {
 
    # Review / Edit loop
    while true; do
-      # === Full Settings Summary + Confirmation ===
+      # Full Settings Summary + Confirmation
       printf '\n=== Deployment Summary ===\n'
       printf 'Web Root: %s\n' "${WEB_ROOT}"
       printf 'Scripts Folder: %s\n' "${SCRIPTS_DIR}"
@@ -275,9 +267,9 @@ main() {
       printf 'CAPTCHA Provider: %s\n' "${CAPTCHA_TYPE}"
       if [ "${CAPTCHA_TYPE}" != "none" ]; then
          case "${CAPTCHA_TYPE}" in
-            turnstile) printf ' Site Key: %s\n' "${TURNSTILE_SITEKEY}"; printf ' Secret Key: %s\n' "${TURNSTILE_SECRET}" ;;
-            recaptcha) printf ' Site Key: %s\n' "${RECAPTCHA_SITEKEY}"; printf ' Secret Key: %s\n' "${RECAPTCHA_SECRET}" ;;
-            hcaptcha) printf ' Site Key: %s\n' "${HCAPTCHA_SITEKEY}"; printf ' Secret Key: %s\n' "${HCAPTCHA_SECRET}" ;;
+            turnstile) printf ' Site Key: %s\n' "${TURNSTILE_SITE_KEY}"; printf ' Secret Key: %s\n' "${TURNSTILE_SECRET_KEY}" ;;
+            recaptcha) printf ' Site Key: %s\n' "${RECAPTCHA_SITE_KEY}"; printf ' Secret Key: %s\n' "${RECAPTCHA_SECRET_KEY}" ;;
+            hcaptcha) printf ' Site Key: %s\n' "${HCAPTCHA_SITE_KEY}"; printf ' Secret Key: %s\n' "${HCAPTCHA_SECRET_KEY}" ;;
          esac
       fi
       printf '============================\n'
@@ -295,7 +287,6 @@ main() {
       esac
    done
 
-   # === Everything below this line is unchanged from v1.0.2 ===
    # Save settings
    SETTINGS=$(jq -n \
       --arg web_root "${WEB_ROOT}" \
@@ -306,17 +297,17 @@ main() {
       --arg og "${OG_DESC}" \
       --arg captcha_type "${CAPTCHA_TYPE}" \
       --argjson last_choice "${choice}" \
-      --arg turnstile_sitekey "${TURNSTILE_SITEKEY}" \
-      --arg turnstile_secret "${TURNSTILE_SECRET}" \
-      --arg recaptcha_sitekey "${RECAPTCHA_SITEKEY}" \
-      --arg recaptcha_secret "${RECAPTCHA_SECRET}" \
-      --arg hcaptcha_sitekey "${HCAPTCHA_SITEKEY}" \
-      --arg hcaptcha_secret "${HCAPTCHA_SECRET}" \
+      --arg turnstile_site_key "${TURNSTILE_SITE_KEY}" \
+      --arg turnstile_secret_key "${TURNSTILE_SECRET_KEY}" \
+      --arg recaptcha_site_key "${RECAPTCHA_SITE_KEY}" \
+      --arg recaptcha_secret_key "${RECAPTCHA_SECRET_KEY}" \
+      --arg hcaptcha_site_key "${HCAPTCHA_SITE_KEY}" \
+      --arg hcaptcha_secret_key "${HCAPTCHA_SECRET_KEY}" \
       --arg to "${TO_EMAIL}" \
       --arg from "${FROM_EMAIL}" \
       --argjson min_seconds "${MIN_SECONDS}" \
       --argjson enforce_referer_check "${ENFORCE_REFERER}" \
-      '{web_root: $web_root, scripts_dir: $scripts_dir, site_title: $site_title, url: $url, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, last_choice: $last_choice, turnstile: {sitekey: $turnstile_sitekey, secret: $turnstile_secret}, recaptcha: {sitekey: $recaptcha_sitekey, secret: $recaptcha_secret}, hcaptcha: {sitekey: $hcaptcha_sitekey, secret: $hcaptcha_secret}}, contact: {to: $to, from: $from, min_seconds: $min_seconds, enforce_referer_check: $enforce_referer_check}, version: "'${VISDIR_VERSION}'"}')
+      '{web_root: $web_root, scripts_dir: $scripts_dir, site_title: $site_title, url: $url, meta_description: $meta, og_description: $og, captcha: {type: $captcha_type, last_choice: $last_choice, turnstile: {site_key: $turnstile_site_key, secret_key: $turnstile_secret_key}, recaptcha: {site_key: $recaptcha_site_key, secret_key: $recaptcha_secret_key}, hcaptcha: {site_key: $hcaptcha_site_key, secret_key: $hcaptcha_secret_key}}, contact: {to: $to, from: $from, min_seconds: $min_seconds, enforce_referer_check: $enforce_referer_check}, version: "'${VISDIR_VERSION}'"}')
    save_settings "${SETTINGS}"
    log "Settings saved to ${SETTINGS_FILE}"
 
@@ -375,32 +366,29 @@ main() {
       log "Activating ${CAPTCHA_TYPE} CAPTCHA..."
       case "${CAPTCHA_TYPE}" in
          turnstile)
-            SITEKEY="${TURNSTILE_SITEKEY}"
-            SECRET="${TURNSTILE_SECRET}"
-            MARKER="CLOUDFLARE-TURNSTILE"
+            SITE_KEY="${TURNSTILE_SITE_KEY}"
+            SECRET="${TURNSTILE_SECRET_KEY}"
+            MARKER="TURNSTILE"
             ;;
          recaptcha)
-            SITEKEY="${RECAPTCHA_SITEKEY}"
-            SECRET="${RECAPTCHA_SECRET}"
-            MARKER="GOOGLE-RECAPTCHA-V3"
+            SITE_KEY="${RECAPTCHA_SITE_KEY}"
+            SECRET="${RECAPTCHA_SECRET_KEY}"
+            MARKER="RECAPTCHA"
             ;;
          hcaptcha)
-            SITEKEY="${HCAPTCHA_SITEKEY}"
-            SECRET="${HCAPTCHA_SECRET}"
+            SITE_KEY="${HCAPTCHA_SITE_KEY}"
+            SECRET="${HCAPTCHA_SECRET_KEY}"
             MARKER="HCAPTCHA"
             ;;
       esac
+      # Activate individual CAPTCHA blocks
       sed -i "s|${MARKER}-BEGIN|${MARKER}-BEGIN -->|" "${WEB_ROOT}/contact.html"
       sed -i "s|${MARKER}-END|<!-- ${MARKER}-END|" "${WEB_ROOT}/contact.html"
       sed -i "s|${MARKER}-BEGIN|${MARKER}-BEGIN */|" "${WEB_ROOT}/contact.php"
       sed -i "s|${MARKER}-END|/* ${MARKER}-END|" "${WEB_ROOT}/contact.php"
-      # Replace sitekey and secret in HTML and PHP templates
-      # Templates use inconsistent naming: SITEKEY vs SITE_KEY, SECRET vs SECRET_KEY
-      # Try both forms to handle all CAPTCHA providers
-      sed -i "s|YOUR_${MARKER}_SITEKEY_HERE|${SITEKEY}|g" "${WEB_ROOT}/contact.html" "${WEB_ROOT}/contact.php"
-      sed -i "s|YOUR_${MARKER}_SITE_KEY_HERE|${SITEKEY}|g" "${WEB_ROOT}/contact.html" "${WEB_ROOT}/contact.php"
-      sed -i "s|YOUR_${MARKER}_SECRET_HERE|${SECRET}|g" "${WEB_ROOT}/contact.php"
-      sed -i "s|YOUR_${MARKER}_SECRET_KEY_HERE|${SECRET}|g" "${WEB_ROOT}/contact.php"
+      # Replace SITE_KEY and secret in HTML and PHP templates
+      sed -i "s|${MARKER}_SITE_KEY|${SITE_KEY}|g" "${WEB_ROOT}/contact.html" "${WEB_ROOT}/contact.php"
+      sed -i "s|${MARKER}_SECRET_KEY|${SECRET}|g" "${WEB_ROOT}/contact.php"
    fi
 
    log "Deployment completed successfully!"
@@ -409,7 +397,8 @@ main() {
    printf '2. Run thumbnail updater:\n cd %s && ./update-thumbnails.sh\n' "${SCRIPTS_DIR}"
    printf '3. Add to cron (daily at 3 AM):\n'
    printf ' 0 3 * * * %s/update-thumbnails.sh >/dev/null 2>&1\n\n' "${SCRIPTS_DIR}"
-   printf 'For issues or discussions: https://github.com/seancrites/visdir\n'
+   printf 'For issues or discussions: https://github.com/seancrites/visdir\n\n'
+
    exit 0
 }
 

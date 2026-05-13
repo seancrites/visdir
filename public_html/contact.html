@@ -39,14 +39,14 @@
    <!-- ==================== CAPTCHA OPTIONS (choose ONE) ==================== -->
 
    <!-- Option 1: Cloudflare Turnstile (Recommended - privacy friendly) -->
-   <!-- CLOUDFLARE-TURNSTILE-BEGIN
+   <!-- TURNSTILE-BEGIN
    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-   CLOUDFLARE-TURNSTILE-END -->
+   TURNSTILE-END -->
 
    <!-- Option 2: Google reCAPTCHA v3 (Invisible) -->
-   <!-- GOOGLE-RECAPTCHA-V3-BEGIN
-   <script src="https://www.google.com/recaptcha/api.js?render=YOUR_GOOGLE-RECAPTCHA-V3_SITE_KEY_HERE"></script>
-   GOOGLE-RECAPTCHA-V3-END -->
+   <!-- RECAPTCHA-BEGIN
+   <script src="https://www.google.com/recaptcha/api.js?render=RECAPTCHA_SITE_KEY"></script>
+   RECAPTCHA-END -->
 
    <!-- Option 3: hCaptcha -->
    <!-- HCAPTCHA-BEGIN
@@ -110,21 +110,21 @@
          <!-- ==================== CAPTCHA WIDGETS ==================== -->
 
          <!-- Cloudflare Turnstile (Recommended) -->
-         <!-- CLOUDFLARE-TURNSTILE-BEGIN
+         <!-- TURNSTILE-BEGIN
          <div class="flex justify-center">
-            <div class="cf-turnstile" data-sitekey="YOUR_CLOUDFLARE-TURNSTILE_SITEKEY_HERE" data-theme="auto"></div>
+            <div class="cf-turnstile" data-sitekey="TURNSTILE_SITE_KEY" data-theme="auto"></div>
          </div>
-         CLOUDFLARE-TURNSTILE-END -->
+         TURNSTILE-END -->
 
          <!-- Google reCAPTCHA v3 (Invisible) -->
-         <!-- GOOGLE-RECAPTCHA-V3-BEGIN
+         <!-- RECAPTCHA-BEGIN
          <input type="hidden" id="recaptcha_token" name="recaptcha_token">
-         GOOGLE-RECAPTCHA-V3-END -->
+         RECAPTCHA-END -->
 
          <!-- hCaptcha -->
          <!-- HCAPTCHA-BEGIN
          <div class="flex justify-center">
-            <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY_HERE"></div>
+            <div class="h-captcha" data-sitekey="HCAPTCHA_SITE_KEY"></div>
          </div>
          HCAPTCHA-END -->
 
@@ -224,19 +224,18 @@
       };
    </script>
 
-   <!-- Uncomment the block below when using Google reCAPTCHA v3 and add your site key -->
-   <!-- GOOGLE-RECAPTCHA-V3-BEGIN
+   <!-- RECAPTCHA-BEGIN
    <script>
     document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
-        grecaptcha.execute('YOUR_GOOGLE-RECAPTCHA-V3_SITE_KEY_HERE', {action: 'submit'})
+        grecaptcha.execute('RECAPTCHA_SITE_KEY', {action: 'submit'})
             .then(function(token) {
                 document.getElementById('recaptcha_token').value = token;
                 e.target.submit();   // now submit the form
             });
     });
    </script>
-   GOOGLE-RECAPTCHA-V3-END -->
+   RECAPTCHA-END -->
 
 </body>
 
