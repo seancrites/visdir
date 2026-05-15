@@ -1,4 +1,4 @@
-# visdir v2.0.0
+# visdir v2.0.1
 # https://github.com/seancrites/visdir
 #
 # robots.txt for visdir visual directory

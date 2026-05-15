@@ -6,8 +6,8 @@
 # PURPOSE: Reliable screenshot capture using Playwright for VisDir.
 #          Takes live screenshots of entity websites and creates thumbnails.
 # AUTHOR: Generated for the visdir project
-# VERSION: v2.0.0
-# DATE: 2026-05-12
+# VERSION: v2.0.1
+# DATE: 2026-05-15
 # =============================================================================
 
 import json

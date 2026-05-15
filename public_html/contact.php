@@ -4,7 +4,7 @@
  * visdir Contact Form Handler
  *
  * @package     visdir
- * @version     2.0.0
+ * @version     2.0.1
  * @author      Sean Crites
  * @license     GPL-3.0
  * @link        https://github.com/seancrites/visdir
