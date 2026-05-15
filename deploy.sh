@@ -328,8 +328,15 @@ main() {
    fi
 
    # Copy files
+   DATA_JSON_EXISTED=false
+   [ -f "${WEB_ROOT}/data.json" ] && DATA_JSON_EXISTED=true
    log "Copying fresh files to web root..."
-   cp -a public_html/* "${WEB_ROOT}/"
+   for f in public_html/*; do
+      [ "${f##*/}" != "data.json" ] && cp -a "$f" "${WEB_ROOT}/"
+   done
+   if [ "$DATA_JSON_EXISTED" = true ]; then
+      log "data.json already exists - preserving existing file"
+   fi
    mkdir -p "${WEB_ROOT}/thumbnails"
    log "Copying scripts to ${SCRIPTS_DIR}..."
    cp -a scripts "${SCRIPTS_DIR}/"
