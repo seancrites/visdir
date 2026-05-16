@@ -182,6 +182,7 @@
 
          entities.forEach(entity => {
             if (!entity.website) return;
+            if (entity.disable === true || entity.disable === "true") return;
 
             const card = document.createElement('div');
             card.className = 'entity-card bg-white dark:bg-slate-900 rounded-2xl shadow overflow-hidden border border-slate-100 dark:border-slate-700';

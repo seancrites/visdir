@@ -136,6 +136,7 @@ Each object in the `entities` array supports:
 | `lat`            | number  | Latitude for the map pin                                        |
 | `lng`            | number  | Longitude for the map pin                                       |
 | `take_thumbnail` | boolean | Set to `false` to skip thumbnail generation for this entity     |
+| `disable`        | boolean | Set to `false` to skip rendering and thumbnail generation       |
 
 ##### Multiple Contacts
 

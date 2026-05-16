@@ -131,6 +131,7 @@
          }).addTo(map);
 
          entities.forEach(entity => {
+            if (entity.disable === true || entity.disable === "true") return;
             if (entity.lat && entity.lng) {
                const popup = `
                         <b>${entity.name}</b><br>

@@ -418,6 +418,9 @@ with sync_playwright() as p:
     for entity in entities:
         if not entity.get("website"):
             continue
+        if entity.get("disable") in (True, "true", "True"):
+            print("Skipping {} (disable=true)".format(entity.get('slug', 'unknown')))
+            continue
         if entity.get("take_thumbnail") is False:
             print("Skipping {} (take_thumbnail=false)".format(entity.get('slug', 'unknown')))
             continue
