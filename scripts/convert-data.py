@@ -12,7 +12,7 @@
 #   python convert-data.py --to-json input.csv output.json
 #   python convert-data.py --to-json input.csv output.json --site-from old.json
 #
-# AUTHOR: Generated for the visdir project
+# AUTHOR: Sean Crites
 # VERSION: v2.0.1
 # DATE: 2026-05-15
 # =============================================================================

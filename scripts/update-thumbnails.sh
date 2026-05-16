@@ -5,7 +5,7 @@
 # PURPOSE: One-command thumbnail updater for VisDir
 #          (activate venv → run → deactivate)
 #
-# AUTHOR: Generated for the visdir project
+# AUTHOR: Sean Crites
 # VERSION: v2.0.1
 # DATE: 2026-05-15
 # =============================================================================
