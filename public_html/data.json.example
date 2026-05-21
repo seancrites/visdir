@@ -28,7 +28,8 @@
          "youtube": "https://youtube.com/example",
          "lat": "40.7128",
          "lng": "-74.006",
-         "take_thumbnail": "true"
+         "take_thumbnail": "true",
+         "disable": "false"
       },
       {
          "slug": "example-entity-2",
@@ -45,7 +46,8 @@
          "youtube": "https://youtube.com/exampletwo",
          "lat": "34.0522",
          "lng": "-118.2437",
-         "take_thumbnail": "true"
+         "take_thumbnail": "true",
+         "disable": "false"
       },
       {
          "slug": "example-entity-3",
@@ -72,7 +74,8 @@
          "youtube": "https://youtube.com/examplethree",
          "lat": "41.8781",
          "lng": "-87.6298",
-         "take_thumbnail": "false"
+         "take_thumbnail": "false",
+         "disable": "false"
       }
    ]
 }
